@@ -121,7 +121,7 @@ FetchContent_Declare(libcypher_parser
 FetchContent_MakeAvailable(lua sol2 rocksdb libcypher_parser)
 
 # -----------------------------------------------------------------------------
-# StrutDB module targets (INTERFACE until Phase 2 adds translation units)
+# StrutDB module targets
 #
 # Dependency DAG (one-way only):
 #   network -> execution -> parser -> core
@@ -129,16 +129,22 @@ FetchContent_MakeAvailable(lua sol2 rocksdb libcypher_parser)
 #                   \-> scripting -> core
 #   core -> (STL / Threads only)
 # -----------------------------------------------------------------------------
-add_library(strutdb_core INTERFACE)
+add_library(strutdb_core STATIC
+  src/core/node.cpp
+  src/core/edge.cpp
+  src/core/adjacency.cpp
+  src/core/graph.cpp
+  src/core/hashmap.cpp
+)
 add_library(strutdb::core ALIAS strutdb_core)
-target_include_directories(strutdb_core INTERFACE
+target_include_directories(strutdb_core PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
-target_link_libraries(strutdb_core INTERFACE
+target_link_libraries(strutdb_core PUBLIC
   strutdb::warnings
   strutdb::threads
 )
-target_compile_features(strutdb_core INTERFACE cxx_std_20)
+target_compile_features(strutdb_core PUBLIC cxx_std_20)
 
 add_library(strutdb_parser INTERFACE)
 add_library(strutdb::parser ALIAS strutdb_parser)
