@@ -188,11 +188,15 @@ target_link_libraries(strutdb_execution PUBLIC
   strutdb::scripting
 )
 
-add_library(strutdb_network INTERFACE)
+add_library(strutdb_network STATIC
+  src/network/resp.cpp
+  src/network/server.cpp
+)
 add_library(strutdb::network ALIAS strutdb_network)
-target_include_directories(strutdb_network INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
-target_link_libraries(strutdb_network INTERFACE
+target_include_directories(strutdb_network PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(strutdb_network PUBLIC
   strutdb::execution
+  strutdb::threads
 )
 
 add_library(strutdb INTERFACE)
