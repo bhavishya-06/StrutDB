@@ -165,19 +165,23 @@ target_link_libraries(strutdb_storage INTERFACE
   rocksdb
 )
 
-add_library(strutdb_scripting INTERFACE)
+add_library(strutdb_scripting STATIC
+  src/scripting/lua_engine.cpp
+)
 add_library(strutdb::scripting ALIAS strutdb_scripting)
-target_include_directories(strutdb_scripting INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
-target_link_libraries(strutdb_scripting INTERFACE
+target_include_directories(strutdb_scripting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(strutdb_scripting PUBLIC
   strutdb::core
   sol2::sol2
   lua_static
 )
 
-add_library(strutdb_execution INTERFACE)
+add_library(strutdb_execution STATIC
+  src/execution/executor.cpp
+)
 add_library(strutdb::execution ALIAS strutdb_execution)
-target_include_directories(strutdb_execution INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
-target_link_libraries(strutdb_execution INTERFACE
+target_include_directories(strutdb_execution PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(strutdb_execution PUBLIC
   strutdb::core
   strutdb::parser
   strutdb::storage
