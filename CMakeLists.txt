@@ -202,3 +202,14 @@ target_link_libraries(strutdb_network PUBLIC
 add_library(strutdb INTERFACE)
 add_library(strutdb::strutdb ALIAS strutdb)
 target_link_libraries(strutdb INTERFACE strutdb::network)
+
+# -----------------------------------------------------------------------------
+# Executable target
+# -----------------------------------------------------------------------------
+add_executable(strutdb-server
+  src/main.cpp
+)
+target_link_libraries(strutdb-server PRIVATE
+  strutdb::network
+)
+target_compile_features(strutdb-server PRIVATE cxx_std_20)
