@@ -9,12 +9,25 @@ check_include_file(strings.h  HAVE_STRINGS_H)
 
 set(PACKAGE_VERSION "0.6.2")
 set(PACKAGE_STRING "libcypher-parser ${PACKAGE_VERSION}")
+set(PACKAGE_MAJOR_VERSION 0)
+set(PACKAGE_MINOR_VERSION 6)
+set(PACKAGE_PATCH_VERSION 2)
+set(PACKAGE_STATUS_VERSION 0)
+set(PACKAGE_DEVELOPMENT_VERSION "")
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/config.h"
   @ONLY
 )
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/src/cypher-parser.h.in")
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/lib/src/cypher-parser.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/cypher-parser.h"
+    @ONLY
+  )
+endif()
 
 file(GLOB LIBCYPHER_SOURCES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/lib/src/*.c"
@@ -25,6 +38,7 @@ add_library(libcypher-parser::cypher-parser ALIAS cypher-parser)
 
 target_include_directories(cypher-parser
   PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )

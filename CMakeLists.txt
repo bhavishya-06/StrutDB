@@ -146,13 +146,16 @@ target_link_libraries(strutdb_core PUBLIC
 )
 target_compile_features(strutdb_core PUBLIC cxx_std_20)
 
-add_library(strutdb_parser INTERFACE)
-add_library(strutdb::parser ALIAS strutdb_parser)
-target_include_directories(strutdb_parser INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
-target_link_libraries(strutdb_parser INTERFACE
-  strutdb::core
-  cypher-parser
+add_library(strutdb_parser STATIC
+  src/parser/parser.cpp
 )
+add_library(strutdb::parser ALIAS strutdb_parser)
+target_include_directories(strutdb_parser PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(strutdb_parser
+  PUBLIC  strutdb::core
+  PRIVATE cypher-parser
+)
+target_compile_features(strutdb_parser PUBLIC cxx_std_20)
 
 add_library(strutdb_storage INTERFACE)
 add_library(strutdb::storage ALIAS strutdb_storage)

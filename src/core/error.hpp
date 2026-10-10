@@ -12,6 +12,9 @@ enum class CoreError {
     DstNodeNotFound,
     EdgeNotFound,
     InvalidArgument,
+    ParseError,
+    QueryTooLarge,
+    UnsupportedAst,
 };
 
 template <typename T>
