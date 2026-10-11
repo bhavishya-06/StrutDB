@@ -1,0 +1,1379 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="High-Performance Native C++20 Graph Database">
+      
+      
+        <meta name="author" content="StrutDB Team">
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../querying/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Architecture - StrutDB</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-engineering-deep-dive" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="StrutDB" class="md-header__button md-logo" aria-label="StrutDB" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            StrutDB
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bhavishya-06/StrutDB" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bhavishya-06/StrutDB
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="StrutDB" class="md-nav__button md-logo" aria-label="StrutDB" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    StrutDB
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bhavishya-06/StrutDB" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bhavishya-06/StrutDB
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#high-level-system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-Level System Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-network-subsystem-asynchronous-epoll-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Network Subsystem: Asynchronous epoll Engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Network Subsystem: Asynchronous epoll Engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#socket-multiplexing-via-linux-epoll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Socket Multiplexing via Linux epoll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zero-copy-buffering-clientsession" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zero-Copy Buffering &amp; ClientSession
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#streaming-resp-parser-finite-state-machine-fsm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Streaming RESP Parser Finite State Machine (FSM)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-query-subsystem-opencypher-parsing-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Query Subsystem: openCypher Parsing &amp; Execution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Query Subsystem: openCypher Parsing &amp; Execution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ast-generation-with-libcypher-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AST Generation with libcypher-parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-path-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern Path Extraction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution-engine-breadth-first-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution Engine &amp; Breadth-First Matching
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Execution Engine &amp; Breadth-First Matching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-executioncontext-variable-binder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The ExecutionContext Variable Binder
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-storage-subsystem-in-memory-engine-rocksdb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Storage Subsystem: In-Memory Engine &amp; RocksDB
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Storage Subsystem: In-Memory Engine &amp; RocksDB">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#64-shard-concurrent-hash-maps-shardedhashmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        64-Shard Concurrent Hash Maps (ShardedHashMap)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="64-Shard Concurrent Hash Maps (ShardedHashMap)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-64-shards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why 64 Shards?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strict-two-phase-lock-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strict Two-Phase Lock Protocol
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csr-style-adjacency-lists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CSR-Style Adjacency Lists
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CSR-Style Adjacency Lists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architectural-advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architectural Advantages:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-rocksdb-persistence-durability-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. RocksDB Persistence &amp; Durability Mechanics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. RocksDB Persistence &amp; Durability Mechanics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-mapping-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Mapping Scheme
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lsm-tree-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LSM-Tree Mechanics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-architectural-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary of Architectural Specifications
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../querying/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Querying
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scripting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Scripting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#high-level-system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-Level System Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-network-subsystem-asynchronous-epoll-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Network Subsystem: Asynchronous epoll Engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Network Subsystem: Asynchronous epoll Engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#socket-multiplexing-via-linux-epoll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Socket Multiplexing via Linux epoll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zero-copy-buffering-clientsession" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zero-Copy Buffering &amp; ClientSession
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#streaming-resp-parser-finite-state-machine-fsm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Streaming RESP Parser Finite State Machine (FSM)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-query-subsystem-opencypher-parsing-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Query Subsystem: openCypher Parsing &amp; Execution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Query Subsystem: openCypher Parsing &amp; Execution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ast-generation-with-libcypher-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AST Generation with libcypher-parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-path-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern Path Extraction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution-engine-breadth-first-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution Engine &amp; Breadth-First Matching
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Execution Engine &amp; Breadth-First Matching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-executioncontext-variable-binder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The ExecutionContext Variable Binder
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-storage-subsystem-in-memory-engine-rocksdb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Storage Subsystem: In-Memory Engine &amp; RocksDB
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Storage Subsystem: In-Memory Engine &amp; RocksDB">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#64-shard-concurrent-hash-maps-shardedhashmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        64-Shard Concurrent Hash Maps (ShardedHashMap)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="64-Shard Concurrent Hash Maps (ShardedHashMap)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-64-shards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why 64 Shards?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strict-two-phase-lock-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strict Two-Phase Lock Protocol
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csr-style-adjacency-lists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CSR-Style Adjacency Lists
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CSR-Style Adjacency Lists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architectural-advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architectural Advantages:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-rocksdb-persistence-durability-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. RocksDB Persistence &amp; Durability Mechanics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. RocksDB Persistence &amp; Durability Mechanics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-mapping-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Mapping Scheme
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lsm-tree-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LSM-Tree Mechanics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-architectural-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary of Architectural Specifications
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture-engineering-deep-dive">Architecture &amp; Engineering Deep-Dive</h1>
+<p>StrutDB is an enterprise-grade native graph database engineered in <strong>C++20</strong>. It is architected for maximal parallelism, zero unnecessary memory allocations, and minimal thread contention.</p>
+<p>This document provides an exhaustive, low-level engineering deep-dive into StrutDB's internal architecture, exploring its network subsystem, query processing engine, in-memory concurrency model, and persistent storage subsystem.</p>
+<hr />
+<h2 id="high-level-system-architecture">High-Level System Architecture</h2>
+<p>The StrutDB process is organized into distinct, decoupled subsystems:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>+-------------------------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>|                                                 Client Applications                                               |
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>|                              (Python SDK, redis-cli, Node.js, Go, Rust, Java, C#)                                 |
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>+----------------------------------------------------------+--------------------------------------------------------+
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                                                           |
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                                                           | TCP Stream (Port 6379, RESP2)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                                                           v
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>+-------------------------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>| Network Subsystem (Asynchronous Linux epoll Engine)                                                              |
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>|                                                                                                                   |
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>|  +-----------------------------+   +------------------------------------+   +----------------------------------+  |
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>|  | Socket Multiplexer          |   | ClientSession Manager              |   | Streaming RESP Parser            |  |
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>|  | - epoll_create1(0)          |   | - Input Buffer: std::vector&lt;uint8&gt; |   | - Finite State Machine (FSM)     |  |
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>|  | - Level-Triggered epoll_wait|   | - Output Buffer: std::vector&lt;uint8&gt;|   | - Zero-copy string slice parsing |  |
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>|  | - O_NONBLOCK Socket Flags   |   | - Per-session lifecycle tracking   |   | - Pipelined command processing   |  |
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>|  +--------------+--------------+   +-----------------+------------------+   +----------------+-----------------+  |
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>+-----------------|------------------------------------|---------------------------------------|--------------------+
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>                  |                                    |                                       |
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                  +------------------------------------+---------------------------------------+
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>                                                       |
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                                                       v Parsed Commands
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>+-------------------------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>| Command Dispatcher &amp; Routing Layer                                                                                |
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>|                                                                                                                   |
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>|     +-----------------------------------+    +----------------------------------+    +----------------------+     |
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>|     | openCypher AST Query Engine       |    | Embedded Lua Script Engine (sol2)|    | Built-in KV Engine   |     |
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>|     | Commands: CREATE, MATCH, RETURN   |    | Command: EVAL &lt;script&gt;           |    | Commands: PING, GET, |     |
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>|     |                                   |    |                                  |    |           SET, DEL   |     |
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>|     +-----------------+-----------------+    +----------------+-----------------+    +----------+-----------+     |
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>+-----------------------|---------------------------------------|---------------------------------|-----------------+
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                        |                                       |                                 |
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                        v                                       v                                 v
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>+-------------------------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>| Graph Execution Engine                                                                                            |
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>|                                                                                                                   |
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>|  +-------------------------------------+   +------------------------------------+   +--------------------------+  |
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>|  | libcypher-parser Front-End          |   | ExecutionContext Variable Binder   |   | Breadth-First Matcher    |  |
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>|  | - AST Tokenization &amp; Tree Gen       |   | - Node Bindings (node_bindings)    |   | - Multi-hop path search  |  |
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>|  | - Clause Splitter (CREATE / MATCH)  |   | - Edge Bindings (edge_bindings)    |   | - Cartesian row builder  |  |
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>|  | - Expression &amp; Predicate Validator  |   | - Literal Bindings (literals)      |   | - Column projection      |  |
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>|  +-------------------------------------+   +------------------------------------+   +--------------------------+  |
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>+----------------------------------------------------------+--------------------------------------------------------+
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>                                                           |
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>                                                           v Internal Graph API
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>+-------------------------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>| In-Memory Graph Core Engine                                                                                       |
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>|                                                                                                                   |
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>|  +-------------------------------------------------------------------------------------------------------------+  |
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>|  | Concurrency &amp; Synchronization Hierarchy                                                                      |  |
+<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>|  | 1. std::shared_mutex rw_mutex_: Shared for Readers, Exclusive for Writers                                   |  |
+<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>|  | 2. Shard Mutexes: std::mutex guarding individual partitions (acquired only under rw_mutex_)                 |  |
+<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>|  | 3. Unlocked internal helpers (*_unlocked) preventing non-recursive mutex deadlocks                          |  |
+<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>|  +-------------------------------------------------------------------------------------------------------------+  |
+<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>|                                                                                                                   |
+<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>|  +-------------------------------------------+                 +-----------------------------------------------+  |
+<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>|  | Sharded Topological Storage (64 Shards)   |                 | CSR Adjacency Index (Compressed Sparse Row)   |  |
+<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>|  | - ShardedHashMap&lt;NodeId, GraphNode&gt;       |                 | - ShardedHashMap&lt;NodeId, vector&lt;AdjEntry&gt;&gt;    |  |
+<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>|  | - ShardedHashMap&lt;EdgeId, GraphEdge&gt;       |                 |   out_ (Outgoing edges: edge_id, dst_id)      |  |
+<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>|  | - ShardedHashMap&lt;string, PropertyValue&gt;   |                 | - ShardedHashMap&lt;NodeId, vector&lt;AdjEntry&gt;&gt;    |  |
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>|  |   kv_ (Fast Key-Value store)              |                 |   in_ (Incoming edges: edge_id, src_id)       |  |
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>|  +-------------------------------------------+                 +-----------------------------------------------+  |
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>+----------------------------------------------------------+--------------------------------------------------------+
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>                                                           |
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>                                                           v Synchronous Flush / WAL Playback
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>+-------------------------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>| Persistent Storage Engine (Embedded RocksDB)                                                                      |
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>|                                                                                                                   |
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>|  +----------------------+   +-----------------------+   +------------------------+   +-------------------------+  |
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>|  | Write-Ahead Log (WAL)|   | Active &amp; Flush MemTable|  | Level 0..N SSTables    |   | Block Cache &amp; Bloom     |  |
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>|  | - Synchronous append |   | - SkipList in-memory  |   | - Sorted String Tables |   | - High-locality filter  |  |
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>|  | - Crash durability   |   | - Concurrent flushes  |   | - Leveled compaction   |   | - Instant point lookups |  |
+<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>|  +----------------------+   +-----------------------+   +------------------------+   +-------------------------+  |
+<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>+-------------------------------------------------------------------------------------------------------------------+
+</code></pre></div>
+<hr />
+<h2 id="1-network-subsystem-asynchronous-epoll-engine">1. Network Subsystem: Asynchronous epoll Engine</h2>
+<p>StrutDB operates a custom, high-throughput network subsystem designed to sustain tens of thousands of concurrent client connections with negligible kernel context-switching overhead.</p>
+<h3 id="socket-multiplexing-via-linux-epoll">Socket Multiplexing via Linux <code>epoll</code></h3>
+<p>The network server uses Linux's scalable I/O multiplexing facility (<code>epoll</code>):</p>
+<ul>
+<li><strong>Instance Creation</strong>: Initialized with <code>epoll_create1(0)</code>.</li>
+<li><strong>Non-Blocking Sockets</strong>: Sockets are placed into non-blocking mode using POSIX <code>fcntl</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fcntl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">F_GETFL</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">fcntl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">F_SETFL</span><span class="p">,</span><span class="w"> </span><span class="n">flags</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">O_NONBLOCK</span><span class="p">);</span>
+</code></pre></div></li>
+<li><strong>Event Notification</strong>: Sockets register interest with <code>EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP</code>.</li>
+<li><strong>Event Loop Dispatch</strong>: The core event loop executes <code>epoll_wait</code> with a maximum event batch size (<code>kMaxEvents = 1024</code>):
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kt">int</span><span class="w"> </span><span class="n">nfds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">epoll_wait</span><span class="p">(</span><span class="n">epoll_fd_</span><span class="p">,</span><span class="w"> </span><span class="n">events</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">kMaxEvents</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">);</span>
+</code></pre></div></li>
+</ul>
+<h3 id="zero-copy-buffering-clientsession">Zero-Copy Buffering &amp; <code>ClientSession</code></h3>
+<p>Every connected client is represented by an allocated <code>ClientSession</code> object:
+- <strong>Input Buffer</strong>: <code>std::vector&lt;std::uint8_t&gt; input_buffer_</code> dynamically reserved to <code>4096</code> bytes. Incoming network chunks from <code>::recv()</code> append directly to this contiguous memory slab.
+- <strong>Output Buffer</strong>: <code>std::vector&lt;std::uint8_t&gt; output_buffer_</code> buffers serialized RESP responses.
+- <strong>Backpressure Handling</strong>: If a socket's TCP send buffer is full, <code>::send()</code> returns <code>EWOULDBLOCK</code> or <code>EAGAIN</code>. StrutDB keeps the unsent bytes buffered and activates <code>EPOLLOUT</code> on the socket, flushing when the kernel socket buffer becomes writable.</p>
+<h3 id="streaming-resp-parser-finite-state-machine-fsm">Streaming RESP Parser Finite State Machine (FSM)</h3>
+<p>StrutDB parses the Redis Serialization Protocol (RESP2) using an incremental, zero-copy state machine:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>[Start] ---&gt; (First byte check: '*', '$', '+', ':', '-')
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>   |
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>   +---&gt; '*' (Array Length) --------&gt; Read count ---&gt; Iterate elements
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>   |
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>   +---&gt; '$' (Bulk String Length) --&gt; Read size  ---&gt; Buffer payload bytes ---&gt; \r\n
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>   |
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>   +---&gt; '+' (Simple String) -------&gt; Scan to \r\n
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>   |
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>   +---&gt; ':' (Integer) -------------&gt; Scan to \r\n
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>   |
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>   +---&gt; [Complete] ---------------&gt; Dispatch Command
+</code></pre></div>
+<p>The <code>RespParser</code> class transitions between deterministic states (<code>ParseState</code>):
+- <code>ParseState::Start</code>: Identifies the type prefix (<code>*</code> for Arrays, <code>$</code> for Bulk Strings).
+- <code>ParseState::ArrayLength</code> &amp; <code>ParseState::ArrayElement</code>: Decodes multi-argument commands (e.g., <code>["MATCH", "(u:User)..."]</code>).
+- <code>ParseState::BulkStringLength</code> &amp; <code>ParseState::BulkStringData</code>: Reads raw binary payloads safely without string copies.</p>
+<p>Because commands arrive in arbitrary TCP chunks, the parser maintains internal byte offsets (<code>consumed</code>). It only advances the buffer when a full grammatical token has been verified, preventing incomplete frames from corrupting server state.</p>
+<hr />
+<h2 id="2-query-subsystem-opencypher-parsing-execution">2. Query Subsystem: openCypher Parsing &amp; Execution</h2>
+<p>StrutDB implements declarative graph querying based on openCypher. Queries are parsed into an Abstract Syntax Tree (AST) and executed against in-memory graph topologies.</p>
+<h3 id="ast-generation-with-libcypher-parser">AST Generation with <code>libcypher-parser</code></h3>
+<p>When a query string arrives (e.g., <code>MATCH (a:User)-[:KNOWS]-&gt;(b:User) RETURN a.name, b.name</code>), it is processed by the C++ parser wrapper:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">cypher_parse_result_t</span><span class="o">*</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cypher_parse</span><span class="p">(</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">query_str</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nb">NULL</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nb">NULL</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="n">CYPHER_PARSE_ONLY_STATEMENTS</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">);</span>
+</code></pre></div>
+<ol>
+<li><strong>Tokenization &amp; Grammar Verification</strong>: <code>libcypher-parser</code> converts the input string into a structured AST of <code>cypher_astnode_t</code> records.</li>
+<li><strong>Clause Extraction</strong>: The AST is recursively walked to extract clauses:</li>
+<li><code>CYPHER_AST_STATEMENT</code> $\to$ <code>CYPHER_AST_QUERY</code></li>
+<li><code>CYPHER_AST_MATCH_CLAUSE</code> $\to$ Extracted into <code>parser::MatchClause</code>.</li>
+<li><code>CYPHER_AST_CREATE_CLAUSE</code> $\to$ Extracted into <code>parser::CreateClause</code>.</li>
+<li><code>CYPHER_AST_RETURN_CLAUSE</code> $\to$ Extracted into <code>parser::ReturnClause</code>.</li>
+</ol>
+<h3 id="pattern-path-extraction">Pattern Path Extraction</h3>
+<p>Path patterns (such as <code>(a:User)-[:KNOWS]-&gt;(b:User)</code>) are decomposed into an alternating sequence of <strong>Node Patterns</strong> and <strong>Relationship Patterns</strong>:</p>
+<ul>
+<li><strong>Node Pattern (<code>parser::NodePattern</code>)</strong>:</li>
+<li><code>variable</code>: e.g., <code>"a"</code></li>
+<li><code>labels</code>: e.g., <code>{"User"}</code></li>
+<li><code>properties</code>: key-value map of literal constraints, e.g., <code>{"name": "Alice"}</code></li>
+<li><strong>Relationship Pattern (<code>parser::RelPattern</code>)</strong>:</li>
+<li><code>variable</code>: relationship variable alias</li>
+<li><code>rel_types</code>: e.g., <code>{"KNOWS"}</code></li>
+<li><code>direction</code>: Directional arrow (<code>-&gt;</code> for Outgoing, <code>&lt;-</code> for Incoming, or undirected)</li>
+</ul>
+<h3 id="execution-engine-breadth-first-matching">Execution Engine &amp; Breadth-First Matching</h3>
+<p>The <code>Executor</code> class maps the AST clauses to physical memory operations:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>[Cypher Query AST]
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>        |
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>        v
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>[execute()]
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>   |---&gt; execute_create(): If CREATE clause present
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>   |        |--&gt; Resolves or creates Node instances in Graph
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>   |        |--&gt; Inserts GraphEdge with TypeId
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>   |        |--&gt; Updates AdjacencyList out_ and in_ maps
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>   |
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>   |---&gt; execute_match(): If MATCH clause present
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>            |--&gt; BFS Path Matcher (bfs_match())
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>            |       |--&gt; Seed matching nodes satisfying initial pattern
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>            |       |--&gt; For each candidate, traverse outgoing/incoming edges
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>            |       |--&gt; Verify edge type and destination node label
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>            |       |--&gt; Bind variables into ExecutionContext
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>            |
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>            |--&gt; execute_return():
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>                    |--&gt; Project variables from ExecutionContext
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>                    |--&gt; Extract requested properties into Row
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>                    |--&gt; Construct final ResultSet
+</code></pre></div>
+<h4 id="the-executioncontext-variable-binder">The <code>ExecutionContext</code> Variable Binder</h4>
+<p>During query evaluation, intermediate matches are stored in an <code>ExecutionContext</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">ExecutionContext</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">core</span><span class="o">::</span><span class="n">GraphNode</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">node_bindings</span><span class="p">;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">core</span><span class="o">::</span><span class="n">GraphEdge</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">edge_bindings</span><span class="p">;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">core</span><span class="o">::</span><span class="n">PropertyValue</span><span class="o">&gt;</span><span class="w">              </span><span class="n">literal_bindings</span><span class="p">;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">};</span>
+</code></pre></div>
+<p>When evaluating multi-hop chains (<code>(a)-[:KNOWS]-&gt;(b)-[:KNOWS]-&gt;(c)</code>), the BFS matcher iteratively extends each valid binding context. If a path fails to satisfy an edge type or property constraint, that branch is pruned immediately, avoiding unnecessary traversals.</p>
+<hr />
+<h2 id="3-storage-subsystem-in-memory-engine-rocksdb">3. Storage Subsystem: In-Memory Engine &amp; RocksDB</h2>
+<p>StrutDB uses a hybrid architecture that pairs a high-performance in-memory layout with persistent disk storage.</p>
+<h3 id="64-shard-concurrent-hash-maps-shardedhashmap">64-Shard Concurrent Hash Maps (<code>ShardedHashMap</code>)</h3>
+<p>To eliminate global table lock contention, StrutDB partitions all node and edge indices across <strong>64 discrete shards</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Key</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Value</span><span class="o">&gt;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">ShardedHashMap</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">kNumShards</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="p">;</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Shard</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">        </span><span class="k">mutable</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="w">                  </span><span class="n">mutex</span><span class="p">;</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">Key</span><span class="p">,</span><span class="w"> </span><span class="n">Value</span><span class="o">&gt;</span><span class="w">      </span><span class="n">map</span><span class="p">;</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="p">};</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span><span class="n">Shard</span><span class="p">,</span><span class="w"> </span><span class="n">kNumShards</span><span class="o">&gt;</span><span class="w">           </span><span class="n">shards_</span><span class="p">;</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="p">};</span>
+</code></pre></div>
+<h4 id="why-64-shards">Why 64 Shards?</h4>
+<ol>
+<li><strong>CPU Cache Isolation</strong>: Placing shard buckets on separate cache lines reduces cache invalidation and cache line bouncing across CPU cores.</li>
+<li><strong>Concurrent Mutation</strong>: 64 worker threads can write to different partitions of the graph simultaneously without blocking one another.</li>
+<li><strong>Partition Hashing</strong>: Keys are distributed via <code>std::hash&lt;Key&gt;{}(key) % 64</code>.</li>
+</ol>
+<h3 id="strict-two-phase-lock-protocol">Strict Two-Phase Lock Protocol</h3>
+<p>Deadlocks are a common failure mode in concurrent graph databases due to complex traversals and cross-node locking. StrutDB enforces a strict, non-invertible lock hierarchy:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>+-----------------------------------------------------------+
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>| Level 1: Graph-Wide std::shared_mutex (rw_mutex_)         |
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>|   - Acquired SHARED by readers (GET, traversals)          |
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>|   - Acquired EXCLUSIVE by writers (add_node, add_edge)    |
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>+-----------------------------+-----------------------------+
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>                              |
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>                              v
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>+-----------------------------------------------------------+
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>| Level 2: Shard Mutexes (std::mutex per Shard)             |
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>|   - Acquired ONLY while rw_mutex_ is already held         |
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>|   - Guard individual unordered_map partitions             |
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>+-----------------------------+-----------------------------+
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>                              |
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>                              v
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>+-----------------------------------------------------------+
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>| Level 3: Individual Node &amp; Edge Accessors                 |
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>|   - Never acquired by Graph writers                       |
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>|   - Internal helpers use *_unlocked methods               |
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>+-----------------------------------------------------------+
+</code></pre></div>
+<div class="admonition danger">
+<p class="admonition-title">Preventing Recursive Deadlocks</p>
+<p><code>std::shared_mutex</code> in C++20 is <strong>not recursive</strong>. If a thread holding <code>rw_mutex_</code> in shared or exclusive mode attempts to acquire it again, the thread will deadlock. StrutDB prevents this by implementing internal <code>*_unlocked</code> methods (e.g., <code>add_edge_unlocked()</code>, <code>delete_node_unlocked()</code>), ensuring that outer API boundaries manage the lock lifecycle cleanly.</p>
+</div>
+<h3 id="csr-style-adjacency-lists">CSR-Style Adjacency Lists</h3>
+<p>Adjacency lists are stored using a Compressed Sparse Row (CSR) design:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">AdjEntry</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="n">EdgeId</span><span class="w"> </span><span class="n">edge_id</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">kInvalidEdgeId</span><span class="p">;</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="n">NodeId</span><span class="w"> </span><span class="n">neighbor_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kInvalidNodeId</span><span class="p">;</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">};</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">AdjacencyList</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="n">ShardedHashMap</span><span class="o">&lt;</span><span class="n">NodeId</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">AdjEntry</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">out_</span><span class="p">;</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="n">ShardedHashMap</span><span class="o">&lt;</span><span class="n">NodeId</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">AdjEntry</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">in_</span><span class="p">;</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="p">};</span>
+</code></pre></div>
+<h4 id="architectural-advantages">Architectural Advantages:</h4>
+<ol>
+<li><strong>Zero Smart-Pointer Cycles</strong>: <code>AdjEntry</code> stores raw primitive 64-bit integer IDs (<code>NodeId</code>, <code>EdgeId</code>) rather than <code>std::shared_ptr&lt;GraphNode&gt;</code>. This completely avoids cyclical pointer references, eliminating reference-counting memory leaks.</li>
+<li><strong>Contiguous Vector Storage</strong>: Neighbors are stored in contiguous <code>std::vector&lt;AdjEntry&gt;</code> buffers, maximizing L1/L2 data cache prefetching during graph traversals.</li>
+</ol>
+<hr />
+<h2 id="4-rocksdb-persistence-durability-mechanics">4. RocksDB Persistence &amp; Durability Mechanics</h2>
+<p>StrutDB guarantees ACID durability across system crashes and container restarts by integrating an embedded <strong>RocksDB</strong> storage engine.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Write Path:
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Client Request ---&gt; Graph Mutation
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>                          |
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>                          +---&gt; 1. Write-Ahead Log (WAL) on Disk (fsync)
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>                          |
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>                          +---&gt; 2. In-Memory Active MemTable (SkipList)
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>                          |
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>                          +---&gt; 3. StrutDB In-Memory Shards &amp; Adjacency List
+</code></pre></div>
+<h3 id="key-mapping-scheme">Key Mapping Scheme</h3>
+<p>Graph topologies map directly to RocksDB's Log-Structured Merge-tree (LSM) key-value format:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Object Type</th>
+<th style="text-align: left;">Key Prefix</th>
+<th style="text-align: left;">Key Format</th>
+<th style="text-align: left;">Value Format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Node</strong></td>
+<td style="text-align: left;"><code>n:</code></td>
+<td style="text-align: left;"><code>n:&lt;node_id&gt;</code></td>
+<td style="text-align: left;">Serialized JSON / Binary Property Bag</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Edge</strong></td>
+<td style="text-align: left;"><code>e:</code></td>
+<td style="text-align: left;"><code>e:&lt;edge_id&gt;</code></td>
+<td style="text-align: left;">Packed struct: <code>{src_id, dst_id, type_id, properties}</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Outgoing Adjacency</strong></td>
+<td style="text-align: left;"><code>adj:out:</code></td>
+<td style="text-align: left;"><code>adj:out:&lt;node_id&gt;</code></td>
+<td style="text-align: left;">Binary vector of <code>{edge_id, neighbor_id}</code> tuples</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Incoming Adjacency</strong></td>
+<td style="text-align: left;"><code>adj:in:</code></td>
+<td style="text-align: left;"><code>adj:in:&lt;node_id&gt;</code></td>
+<td style="text-align: left;">Binary vector of <code>{edge_id, neighbor_id}</code> tuples</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Metadata</strong></td>
+<td style="text-align: left;"><code>meta:</code></td>
+<td style="text-align: left;"><code>meta:max_ids</code></td>
+<td style="text-align: left;">Packed 64-bit integers <code>{max_node_id, max_edge_id}</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="lsm-tree-mechanics">LSM-Tree Mechanics</h3>
+<ol>
+<li><strong>Write-Ahead Log (WAL)</strong>: Every write is appended sequentially to the WAL file on disk before returning success to the client, guaranteeing crash recovery with $\mathcal{O}(1)$ write latency.</li>
+<li><strong>Active MemTable</strong>: Writes enter an in-memory concurrent SkipList.</li>
+<li><strong>Flushing</strong>: When the active MemTable reaches its capacity, it freezes into an immutable MemTable and flushes to disk as a Level 0 (L0) Sorted String Table (SSTable).</li>
+<li><strong>Leveled Compaction</strong>: Background worker threads merge overlapping SSTable key ranges from Level $L$ to Level $L+1$, removing deleted records and maintaining bounded read amplification.</li>
+<li><strong>Recovery on Startup</strong>: If the StrutDB process restarts, the engine inspects the <code>/var/lib/strutdb</code> directory, replays any uncommitted WAL records, loads the SSTables, and reconstructs the in-memory 64-shard hash maps and CSR adjacency lists.</li>
+</ol>
+<hr />
+<h2 id="summary-of-architectural-specifications">Summary of Architectural Specifications</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Specification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Language Standard</strong></td>
+<td style="text-align: left;">C++20 (<code>-std=c++20</code>, GCC 13+ / Clang 16+)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Network Engine</strong></td>
+<td style="text-align: left;">POSIX <code>epoll</code>, non-blocking I/O, level-triggered</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Wire Protocol</strong></td>
+<td style="text-align: left;">Redis RESP2 (Simple strings, bulk strings, integers, arrays, errors)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Port</strong></td>
+<td style="text-align: left;"><code>6379</code> (Default Redis TCP port)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Shard Count</strong></td>
+<td style="text-align: left;">64 shards (<code>ShardedHashMap</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Concurrency Primitives</strong></td>
+<td style="text-align: left;"><code>std::shared_mutex</code> (Graph-level), <code>std::mutex</code> (Shard-level)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Adjacency Representation</strong></td>
+<td style="text-align: left;">Compressed Sparse Row (CSR) ID vectors (<code>AdjEntry</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Cypher Parser</strong></td>
+<td style="text-align: left;"><code>libcypher-parser</code> with recursive AST transformation</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Scripting Runtime</strong></td>
+<td style="text-align: left;">Lua 5.4 embedded via <code>sol2</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Persistent Storage</strong></td>
+<td style="text-align: left;">RocksDB Log-Structured Merge-tree (LSM)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Persistence Directory</strong></td>
+<td style="text-align: left;"><code>/var/lib/strutdb</code> (Docker host mount: <code>./strutdb-data</code>)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "content.code.copy", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

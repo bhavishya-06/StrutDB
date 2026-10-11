@@ -1,0 +1,1017 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="High-Performance Native C++20 Graph Database">
+      
+      
+        <meta name="author" content="StrutDB Team">
+      
+      
+      
+      
+        <link rel="next" href="architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>StrutDB</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#strutdb-native-high-performance-graph-database" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="StrutDB" class="md-header__button md-logo" aria-label="StrutDB" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            StrutDB
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bhavishya-06/StrutDB" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bhavishya-06/StrutDB
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="StrutDB" class="md-nav__button md-logo" aria-label="StrutDB" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    StrutDB
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bhavishya-06/StrutDB" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bhavishya-06/StrutDB
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-vision-why-build-a-native-graph-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Vision: Why Build a Native Graph Database?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Vision: Why Build a Native Graph Database?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-failure-of-relational-joins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Failure of Relational Joins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-power-of-index-free-adjacency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Power of Index-Free Adjacency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eliminating-the-n1-latency-tax-with-server-side-lua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eliminating the N+1 Latency Tax with Server-Side Lua
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-pillars-architectural-highlights" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Pillars &amp; Architectural Highlights
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-step-by-step-installation-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Step-by-Step Installation Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Complete Step-by-Step Installation Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Clone the Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-build-the-multi-stage-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Build the Multi-Stage Docker Image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-launch-with-docker-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Launch with Docker Compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verify-network-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Verify Network Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-install-the-python-sdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Install the Python SDK
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-run-your-first-python-graph-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Run Your First Python Graph Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="querying/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Querying
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="scripting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Scripting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-vision-why-build-a-native-graph-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Vision: Why Build a Native Graph Database?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Vision: Why Build a Native Graph Database?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-failure-of-relational-joins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Failure of Relational Joins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-power-of-index-free-adjacency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Power of Index-Free Adjacency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eliminating-the-n1-latency-tax-with-server-side-lua" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eliminating the N+1 Latency Tax with Server-Side Lua
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-pillars-architectural-highlights" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Pillars &amp; Architectural Highlights
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-step-by-step-installation-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Step-by-Step Installation Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Complete Step-by-Step Installation Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Clone the Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-build-the-multi-stage-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Build the Multi-Stage Docker Image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-launch-with-docker-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Launch with Docker Compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verify-network-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Verify Network Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-install-the-python-sdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Install the Python SDK
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-run-your-first-python-graph-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Run Your First Python Graph Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="strutdb-native-high-performance-graph-database">StrutDB: Native High-Performance Graph Database</h1>
+<p>Welcome to the official documentation for <strong>StrutDB</strong>, an enterprise-grade, high-performance in-memory graph database engineered from the ground up in modern <strong>C++20</strong>.</p>
+<p>StrutDB unifies the sub-microsecond traversal speeds of lock-free in-memory index-free adjacency lists with the crash resilience and ACID durability of embedded <strong>RocksDB</strong> LSM-trees, openCypher declarative graph querying, sandboxed <strong>Lua 5.4</strong> User-Defined Functions, and the universal compatibility of the <strong>Redis RESP2</strong> wire protocol.</p>
+<hr />
+<h2 id="the-vision-why-build-a-native-graph-database">The Vision: Why Build a Native Graph Database?</h2>
+<p>Modern applications are overwhelmingly defined by interconnected networks of entities: social graphs, financial fraud rings, real-time recommendation engines, identity access trees, and supply-chain logistics.</p>
+<p>Despite this, most engineering teams continue to force graph data models into traditional Relational Database Management Systems (RDBMS) or Document stores. This mismatch creates severe architectural bottlenecks.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>+----------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>|                               THE RELATIONAL JOIN BOTTLENECK                                       |
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>|                                                                                                    |
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>|   Query: "Find all friends of friends who bought product X"                                       |
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>|                                                                                                    |
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>|   RDBMS (Foreign Keys &amp; B-Trees):                                                                  |
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>|   [Users] --(B-Tree Scan)--&gt; [Friendships] --(Nested Loop Join)--&gt; [Friendships]                  |
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>|                                                            --(Hash Join)--&gt; [Orders]               |
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>|                                                            --(B-Tree Scan)--&gt; [Products]           |
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>|                                                                                                    |
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>|   Complexity: O(N_1 * N_2 * ... * N_k)  --&gt; Exponential join explosion &amp; cache invalidation        |
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>+----------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                                                vs.
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>+----------------------------------------------------------------------------------------------------+
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>|                                STRUTDB INDEX-FREE ADJACENCY                                        |
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>|                                                                                                    |
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>|   StrutDB (Contiguous Memory Pointers):                                                            |
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>|   (User A) ===[Direct Pointer]===&gt; (User B) ===[Direct Pointer]===&gt; (User C)                       |
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>|                                                                                                    |
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>|   Complexity: O(degree(v))              --&gt; Sub-microsecond pointer chasing in L1/L2 CPU cache     |
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>+----------------------------------------------------------------------------------------------------+
+</code></pre></div>
+<h3 id="the-failure-of-relational-joins">The Failure of Relational Joins</h3>
+<p>In an RDBMS, relationships are simulated through foreign keys. Traversing a relationship requires looking up an ID inside an index (typically a B+Tree with $\mathcal{O}(\log N)$ depth). For a traversal of depth $k$, an RDBMS must perform $k$ nested index lookups and join operations:</p>
+<p>$$\text{Latency}<em>{\text{RDBMS}} = \sum</em>{i=1}^k \mathcal{O}(\log N_i) \times \text{Join Cost}$$</p>
+<p>As data grows into tens of millions of records, join operations blow past CPU cache lines, thrash buffer pools, trigger global table read locks, and degrade latency exponentially.</p>
+<h3 id="the-power-of-index-free-adjacency">The Power of Index-Free Adjacency</h3>
+<p>StrutDB utilizes <strong>Index-Free Adjacency (IFA)</strong>. Every node in StrutDB directly references its outgoing and incoming relationships via contiguous Compressed Sparse Row (CSR) memory structures.</p>
+<p>When navigating from node $A$ to node $B$, the engine does <strong>not</strong> evaluate an index. It chases memory pointers directly. Traversal cost is strictly proportional to the number of edges connected to the node:</p>
+<p>$$\text{Latency}_{\text{StrutDB}} = \mathcal{O}(\text{degree}(A))$$</p>
+<p>Traversing relationships remains instantaneous, whether your database contains ten thousand nodes or ten billion nodes.</p>
+<hr />
+<h2 id="eliminating-the-n1-latency-tax-with-server-side-lua">Eliminating the N+1 Latency Tax with Server-Side Lua</h2>
+<p>A pervasive architectural issue in graph querying is the <strong>N+1 Query Problem</strong>:</p>
+<ol>
+<li>A backend service queries the database for user $A$ (1 network round-trip).</li>
+<li>The database returns $N$ friend IDs.</li>
+<li>The backend service fires $N$ subsequent network queries to retrieve details for each friend ($N$ round-trips).</li>
+</ol>
+<p>Even over high-speed 10GbE network fabrics, performing multiple sequential network hops accumulates significant tail latency ($p99 &gt; 150\text{ms}$).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Traditional Architecture (N+1 Network Tax):
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Client  ---(1. Fetch Node A)---------------------&gt; DB
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Client  &lt;--(Returns Node A with N edge IDs)------- DB
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Client  ---(2. Fetch Neighbor 1)------------------&gt; DB
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>Client  ---(3. Fetch Neighbor 2)------------------&gt; DB
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>Client  ---(4. Fetch Neighbor N)------------------&gt; DB
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>Total Network Hops: 1 + N Round-Trips (Heavy Latency)
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>StrutDB Embedded Lua Architecture (Zero Network Tax):
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>Client  ---(Single EVAL script with traversal)----&gt; StrutDB (C++ Engine)
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>                                                      |--&gt; Traverses 100+ hops in-memory
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>                                                      |--&gt; Runs custom scoring heuristic
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>Client  &lt;--(Returns Final Computed Result)--------- StrutDB
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>Total Network Hops: Exactly 1 Round-Trip!
+</code></pre></div>
+<p>StrutDB embeds a sandboxed <strong>Lua 5.4 engine (<code>sol2</code>)</strong> directly inside the database process. Developers can transmit custom algorithms, multi-hop breadth-first searches, or ranking formulas in a single Redis <code>EVAL</code> command. The logic executes natively against C++ memory structures, eliminating network round-trips entirely.</p>
+<hr />
+<h2 id="core-pillars-architectural-highlights">Core Pillars &amp; Architectural Highlights</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Pillar</th>
+<th style="text-align: left;">Engineering Design</th>
+<th style="text-align: left;">Production Benefit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Concurrency Core</strong></td>
+<td style="text-align: left;">64-shard concurrent hash table with reader-writer shared mutexes</td>
+<td style="text-align: left;">Zero lock contention on parallel reads; isolated shard locking on writes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Topology Representation</strong></td>
+<td style="text-align: left;">Compressed Sparse Row (CSR) index-free adjacency storing node/edge IDs</td>
+<td style="text-align: left;">High cache locality; no cyclical pointer overhead or memory leaks</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Durability Layer</strong></td>
+<td style="text-align: left;">Embedded RocksDB LSM-Tree with Write-Ahead Logging (WAL)</td>
+<td style="text-align: left;">Zero data loss on container restart; immediate crash recovery</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Declarative Querying</strong></td>
+<td style="text-align: left;">Recursive AST parsing with <code>libcypher-parser</code></td>
+<td style="text-align: left;">Native openCypher <code>CREATE</code>, <code>MATCH</code>, and <code>RETURN</code> pattern queries</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Extensibility</strong></td>
+<td style="text-align: left;">Sandboxed Lua 5.4 environment via <code>sol2</code></td>
+<td style="text-align: left;">Custom server-side graph algorithms with strict token validation</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Wire Protocol</strong></td>
+<td style="text-align: left;">Asynchronous Linux <code>epoll</code> socket loop serving Redis RESP2</td>
+<td style="text-align: left;">Works out-of-the-box with any standard Redis client in any language</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="complete-step-by-step-installation-guide">Complete Step-by-Step Installation Guide</h2>
+<p>Follow this guide to get StrutDB compiled, deployed, and connected on your machine.</p>
+<h3 id="system-prerequisites">System Prerequisites</h3>
+<p>Ensure the following tools are installed on your workstation:
+- <strong>Docker Engine</strong> (v20.10 or later) &amp; <strong>Docker Compose</strong>
+- <strong>Git</strong>
+- <strong>Python 3.8+</strong> with <code>pip</code></p>
+<hr />
+<h3 id="step-1-clone-the-repository">Step 1: Clone the Repository</h3>
+<p>Clone the StrutDB repository from GitHub and navigate into the project root:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/bhavishya-06/StrutDB.git
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>StrutDB
+</code></pre></div>
+<p>Verify the project structure:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ls<span class="w"> </span>-F
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># CMakeLists.txt  Dockerfile  README.md  clients/  docs/  src/  tests/ ...</span>
+</code></pre></div></p>
+<hr />
+<h3 id="step-2-build-the-multi-stage-docker-image">Step 2: Build the Multi-Stage Docker Image</h3>
+<p>StrutDB is written in modern C++20 and requires modern compiler toolchains (<code>gcc-13</code>, <code>ninja</code>, <code>cmake</code>). To ensure deterministic compilation and zero host-dependency headaches, we build using our multi-stage <code>Dockerfile</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>strutdb:latest<span class="w"> </span>.
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Why Multi-Stage Compilation?</p>
+<ol>
+<li><strong>Stage 1 (Builder)</strong>: Installs <code>gcc-13</code>, <code>g++-13</code>, <code>ninja-build</code>, and <code>cmake</code>. It fetches and compiles <code>libcypher-parser</code> and <code>sol2</code>/<code>Lua 5.4</code>, then builds the C++20 <code>strutdb</code> binary with <code>-O3</code> optimizations using Ninja.</li>
+<li><strong>Stage 2 (Runtime Runner)</strong>: Copies only the compiled binary and essential shared libraries into a clean Debian Bookworm image, resulting in a minimal, secure container image free of compilers and header files.</li>
+</ol>
+</div>
+<hr />
+<h3 id="step-3-launch-with-docker-compose">Step 3: Launch with Docker Compose</h3>
+<p>Launch the containerized StrutDB server using Docker Compose:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+</code></pre></div>
+<p>Check the running container:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>ps<span class="w"> </span>--filter<span class="w"> </span><span class="s2">"name=strutdb-server"</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Persistent Storage Mounting</p>
+<p>The <code>docker-compose.yml</code> mounts the host directory <code>./strutdb-data</code> to <code>/var/lib/strutdb</code> inside the container. This is the exact path where the embedded RocksDB engine stores its Write-Ahead Log (WAL) and SSTable files. Even if you run <code>docker compose down</code>, your graph data remains saved on disk.</p>
+</div>
+<p>Verify server logs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span>logs<span class="w"> </span>strutdb-server
+</code></pre></div>
+<p>You should see:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>StrutDB v0.1.0 - High-performance in-memory graph database
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Starting server on port 6379...
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Server listening on port 6379
+</code></pre></div></p>
+<hr />
+<h3 id="step-4-verify-network-connectivity">Step 4: Verify Network Connectivity</h3>
+<p>Because StrutDB speaks the Redis Serialization Protocol (RESP2), you can immediately test network connectivity using <code>redis-cli</code>, <code>nc</code>, or <code>telnet</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>redis-cli<span class="w"> </span>-p<span class="w"> </span><span class="m">6379</span><span class="w"> </span>PING
+</code></pre></div>
+<p>Output:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>PONG
+</code></pre></div></p>
+<hr />
+<h3 id="step-5-install-the-python-sdk">Step 5: Install the Python SDK</h3>
+<p>StrutDB includes an official lightweight Python SDK (<code>strutdb-py</code>) located in <code>clients/python</code>. Install it directly into your local or virtual environment:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>pip<span class="w"> </span>install<span class="w"> </span>./clients/python
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">What This Does</p>
+<p>This installs the <code>strutdb</code> package into your Python environment. It provides <code>StrutDBClient</code>, which handles socket connection pooling, openCypher execution, Lua script dispatching, and automatic decoding of RESP structures into Python objects.</p>
+</div>
+<hr />
+<h3 id="step-6-run-your-first-python-graph-script">Step 6: Run Your First Python Graph Script</h3>
+<p>Create a script named <code>hello_graph.py</code> and run it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">strutdb</span><span class="w"> </span><span class="kn">import</span> <span class="n">StrutDBClient</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1"># Connect to the local StrutDB server</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="k">with</span> <span class="n">StrutDBClient</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">"localhost"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">)</span> <span class="k">as</span> <span class="n">db</span><span class="p">:</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="c1"># 1. Verify health</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Ping status:"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">ping</span><span class="p">())</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="c1"># 2. Create nodes representing developers</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Creating nodes..."</span><span class="p">)</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>    <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"CREATE (u1:Engineer {name: 'Ada Lovelace'}), (u2:Engineer {name: 'Grace Hopper'})"</span><span class="p">)</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>    <span class="c1"># 3. Create a relationship between them</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Creating relationship..."</span><span class="p">)</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>    <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"MATCH (a:Engineer {name: 'Ada Lovelace'}), (b:Engineer {name: 'Grace Hopper'}) CREATE (a)-[:COLLABORATES_WITH]-&gt;(b)"</span><span class="p">)</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>    <span class="c1"># 4. Query the relationship</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Traversing graph..."</span><span class="p">)</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"MATCH (a:Engineer)-[:COLLABORATES_WITH]-&gt;(b:Engineer) RETURN a.name, b.name"</span><span class="p">)</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Query Results:"</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>    <span class="c1"># 5. Run a custom server-side Lua algorithm</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Running server-side Lua script..."</span><span class="p">)</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a>    <span class="n">lua_code</span> <span class="o">=</span> <span class="s2">"""</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="s2">        local n1 = strutdb.add_node()</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="s2">        local n2 = strutdb.add_node()</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="s2">        local edge = strutdb.add_edge(n1, n2, 101)</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="s2">        return string.format("Created nodes </span><span class="si">%d</span><span class="s2"> and </span><span class="si">%d</span><span class="s2"> connected by edge </span><span class="si">%d</span><span class="s2">", n1, n2, edge)</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="s2">    """</span>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a>    <span class="n">output</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">lua_code</span><span class="p">)</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Lua Output:"</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div>
+<p>Run the script:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>hello_graph.py
+</code></pre></div>
+<p>Expected output:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Ping status: True
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>Creating nodes...
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>Creating relationship...
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>Traversing graph...
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>Query Results: [['Ada Lovelace', 'Grace Hopper']]
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>Running server-side Lua script...
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>Lua Output: Created nodes 3 and 4 connected by edge 2
+</code></pre></div></p>
+<p>Congratulations! You have a fully operational, high-performance C++20 graph database running locally. Explore the <a href="architecture/">Architecture Deep-Dive</a>, <a href="querying/">Querying Guide</a>, and <a href="scripting/">Lua Scripting Guide</a> to learn more.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "content.code.copy", "search.suggest", "search.highlight"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
