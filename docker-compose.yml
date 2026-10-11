@@ -1,0 +1,9 @@
+services:
+  strutdb:
+    image: strutdb:latest
+    container_name: strutdb-server
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./strutdb-data:/var/lib/strutdb
+    restart: unless-stopped

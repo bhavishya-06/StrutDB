@@ -1,0 +1,31 @@
+name: Docker Build & CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t strutdb-test .
+
+      - name: Verify container execution
+        run: |
+          docker run -d -p 6379:6379 --name strutdb-ci strutdb-test
+          sleep 2
+          docker ps
+          docker logs strutdb-ci
+          docker rm -f strutdb-ci
