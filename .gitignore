@@ -17,3 +17,9 @@ compile_commands.json
 *.so
 *.dylib
 .DS_Store
+__pycache__/
+*.pyc
+*.pyo
+strutdb-data/
+dist/
+*.egg-info/
