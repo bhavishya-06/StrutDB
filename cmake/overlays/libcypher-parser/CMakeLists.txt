@@ -21,6 +21,12 @@ configure_file(
   @ONLY
 )
 
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/config.h"
+  @ONLY
+)
+
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/src/cypher-parser.h.in")
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/src/cypher-parser.h.in"
@@ -32,6 +38,7 @@ endif()
 file(GLOB LIBCYPHER_SOURCES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/lib/src/*.c"
 )
+list(FILTER LIBCYPHER_SOURCES EXCLUDE REGEX ".*_leg\\.c$")
 
 add_library(cypher-parser STATIC ${LIBCYPHER_SOURCES})
 add_library(libcypher-parser::cypher-parser ALIAS cypher-parser)

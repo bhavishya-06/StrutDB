@@ -18,31 +18,31 @@ core::Result<ResultSet> Executor::execute(const parser::Query& query) {
             case parser::ClauseKind::Match: {
                 auto match_result = execute_match(clause.match);
                 if (!match_result) {
-                    return core::Result<ResultSet>::error(match_result.error());
+                    return core::Result<ResultSet>{{}, match_result.error};
                 }
-                result = std::move(*match_result);
+                result = std::move(match_result.value);
                 break;
             }
             case parser::ClauseKind::Create: {
                 auto create_result = execute_create(clause.create);
                 if (!create_result) {
-                    return core::Result<ResultSet>::error(create_result.error());
+                    return core::Result<ResultSet>{{}, create_result.error};
                 }
-                result = std::move(*create_result);
+                result = std::move(create_result.value);
                 break;
             }
             case parser::ClauseKind::Return: {
                 auto return_result = execute_return(clause.ret, ctx);
                 if (!return_result) {
-                    return core::Result<ResultSet>::error(return_result.error());
+                    return core::Result<ResultSet>{{}, return_result.error};
                 }
-                result = std::move(*return_result);
+                result = std::move(return_result.value);
                 break;
             }
         }
     }
 
-    return core::Result<ResultSet>::ok(result);
+    return core::Result<ResultSet>{result};
 }
 
 core::Result<ResultSet> Executor::execute_match(const parser::MatchClause& match) {
@@ -55,11 +55,11 @@ core::Result<ResultSet> Executor::execute_match(const parser::MatchClause& match
         // BFS from the first node
         auto bfs_result = bfs_match(path, start_ctx);
         if (!bfs_result) {
-            return core::Result<ResultSet>::error(bfs_result.error());
+            return core::Result<ResultSet>{{}, bfs_result.error};
         }
 
         // Convert each execution context to a result row
-        for (const auto& ctx : *bfs_result) {
+        for (const auto& ctx : bfs_result.value) {
             Row row;
             for (const auto& [alias, node] : ctx.node_bindings) {
                 row.columns[alias] = static_cast<std::int64_t>(node->id);
@@ -74,7 +74,7 @@ core::Result<ResultSet> Executor::execute_match(const parser::MatchClause& match
         }
     }
 
-    return core::Result<ResultSet>::ok(result);
+    return core::Result<ResultSet>{result};
 }
 
 core::Result<ResultSet> Executor::execute_create(const parser::CreateClause& create) {
@@ -87,8 +87,7 @@ core::Result<ResultSet> Executor::execute_create(const parser::CreateClause& cre
         for (const auto& node_pattern : path.nodes) {
             auto node = graph_->add_node();
             if (!node) {
-                return core::Result<ResultSet>::error(
-                    core::Error{core::ErrorCode::Internal, "Failed to create node"});
+                return core::Result<ResultSet>{{}, core::CoreError::InvalidArgument};
             }
 
             // Set properties
@@ -121,10 +120,10 @@ core::Result<ResultSet> Executor::execute_create(const parser::CreateClause& cre
 
             auto edge_result = graph_->add_edge(src_id, dst_id, type_id);
             if (!edge_result) {
-                return core::Result<ResultSet>::error(edge_result.error());
+                return core::Result<ResultSet>{{}, edge_result.error};
             }
 
-            auto edge = *edge_result;
+            auto edge = edge_result.value;
 
             // Set properties
             for (const auto& prop : rel.properties) {
@@ -147,7 +146,7 @@ core::Result<ResultSet> Executor::execute_create(const parser::CreateClause& cre
         result.rows.push_back(std::move(row));
     }
 
-    return core::Result<ResultSet>::ok(result);
+    return core::Result<ResultSet>{result};
 }
 
 core::Result<ResultSet> Executor::execute_return(const parser::ReturnClause& ret,
@@ -202,7 +201,7 @@ core::Result<ResultSet> Executor::execute_return(const parser::ReturnClause& ret
         result.rows.push_back(std::move(row));
     }
 
-    return core::Result<ResultSet>::ok(result);
+    return core::Result<ResultSet>{result};
 }
 
 core::Result<std::vector<ExecutionContext>> Executor::bfs_match(
@@ -264,7 +263,7 @@ core::Result<std::vector<ExecutionContext>> Executor::bfs_match(
 
                         // Check if edge matches the pattern
                         auto edge_match = matches_rel_pattern(rel_pattern, edge);
-                        if (!edge_match || !*edge_match) {
+                        if (!edge_match || !edge_match.value) {
                             continue;
                         }
 
@@ -275,7 +274,7 @@ core::Result<std::vector<ExecutionContext>> Executor::bfs_match(
 
                         // Check if neighbor node matches the pattern
                         auto node_match = matches_node_pattern(node_pattern, neighbor);
-                        if (!node_match || !*node_match) {
+                        if (!node_match || !node_match.value) {
                             continue;
                         }
 
@@ -303,7 +302,7 @@ core::Result<std::vector<ExecutionContext>> Executor::bfs_match(
         queue = std::move(next_queue);
     }
 
-    return core::Result<std::vector<ExecutionContext>>::ok(results);
+    return core::Result<std::vector<ExecutionContext>>{results};
 }
 
 core::Result<bool> Executor::matches_node_pattern(const parser::NodePattern& pattern,
@@ -323,13 +322,13 @@ core::Result<bool> Executor::matches_node_pattern(const parser::NodePattern& pat
         for (const auto& prop : pattern.properties) {
             auto it = node_props.find(prop.key);
             if (it == node_props.end()) {
-                return core::Result<bool>::ok(false);
+                return core::Result<bool>{false};
             }
             // TODO: Implement property value comparison
         }
     }
 
-    return core::Result<bool>::ok(true);
+    return core::Result<bool>{true};
 }
 
 core::Result<bool> Executor::matches_rel_pattern(const parser::RelPattern& pattern,
@@ -346,13 +345,13 @@ core::Result<bool> Executor::matches_rel_pattern(const parser::RelPattern& patte
         for (const auto& prop : pattern.properties) {
             auto it = edge_props.find(prop.key);
             if (it == edge_props.end()) {
-                return core::Result<bool>::ok(false);
+                return core::Result<bool>{false};
             }
             // TODO: Implement property value comparison
         }
     }
 
-    return core::Result<bool>::ok(true);
+    return core::Result<bool>{true};
 }
 
 }  // namespace strutdb::execution

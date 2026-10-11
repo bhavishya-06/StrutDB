@@ -24,6 +24,13 @@ struct Result {
 
     [[nodiscard]] bool ok() const noexcept { return error == CoreError::Ok; }
     explicit operator bool() const noexcept { return ok(); }
+
+    T& operator*() & { return value; }
+    const T& operator*() const& { return value; }
+    T&& operator*() && { return std::move(value); }
+
+    T* operator->() { return &value; }
+    const T* operator->() const { return &value; }
 };
 
 }  // namespace strutdb::core

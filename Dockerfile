@@ -2,7 +2,7 @@
 # Stage 1: Builder
 # This stage contains all build tools and compiles the binary
 # -----------------------------------------------------------------------------
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:24.04 AS builder
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     git \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -21,13 +22,13 @@ WORKDIR /build
 COPY . .
 
 # Configure and build
-RUN cmake -DCMAKE_BUILD_TYPE=Release . && make -j$(nproc)
+RUN cmake -G Ninja -DCMAKE_BUILD_TYPE=Release . && ninja
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime
 # This stage contains only the minimal runtime and the compiled binary
 # -----------------------------------------------------------------------------
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Install minimal runtime dependencies (if any)
 # Currently only libstdc++ is needed, which is in the base image

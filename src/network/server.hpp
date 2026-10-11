@@ -29,12 +29,14 @@ public:
 
     void close();
 
+public:
+    static constexpr std::size_t  kMaxBufferSize = 16 * 1024 * 1024;  // 16MB
+
 private:
     int                           fd_;
     std::vector<std::uint8_t>    input_buffer_;
     std::vector<std::uint8_t>    output_buffer_;
     RespParser                    parser_;
-    static constexpr std::size_t  kMaxBufferSize = 16 * 1024 * 1024;  // 16MB
 };
 
 // TCP server with epoll event loop

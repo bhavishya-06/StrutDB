@@ -108,11 +108,10 @@ FetchContent_Declare(rocksdb
 
 # -----------------------------------------------------------------------------
 # libcypher-parser — Cypher AST (autotools upstream; overlay CMakeLists)
+# Use release tarball which includes pre-generated parser files
 # -----------------------------------------------------------------------------
 FetchContent_Declare(libcypher_parser
-  GIT_REPOSITORY https://github.com/cleishm/libcypher-parser.git
-  GIT_TAG        v0.6.2
-  GIT_SHALLOW    TRUE
+  URL https://github.com/cleishm/libcypher-parser/releases/download/v0.6.2/libcypher-parser-0.6.2.tar.gz
   PATCH_COMMAND  ${CMAKE_COMMAND}
                    -DOVERLAY_DIR=${CMAKE_CURRENT_SOURCE_DIR}/cmake/overlays/libcypher-parser
                    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/overlays/libcypher-parser/apply_overlay.cmake

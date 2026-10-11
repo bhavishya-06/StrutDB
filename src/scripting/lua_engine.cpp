@@ -99,12 +99,15 @@ void LuaScriptEngine::bind_graph_api() {
     strutdb_api.set_function("add_edge", [this](core::NodeId src_id,
                                                  core::NodeId dst_id,
                                                  core::TypeId type_id) -> core::EdgeId {
-        auto edge = graph_->add_edge(src_id, dst_id, type_id);
-        return edge ? (*edge)->id : core::kInvalidEdgeId;
+        auto edge_result = graph_->add_edge(src_id, dst_id, type_id);
+        if (edge_result) {
+            return edge_result.value->id;
+        }
+        return core::kInvalidEdgeId;
     });
 
     // get_node(id) - Get node properties as a table
-    strutdb_api.set_function("get_node", [this](core::NodeId id) -> sol::table {
+    strutdb_api.set_function("get_node", [this, lua](core::NodeId id) -> sol::table {
         auto node = graph_->get_node(id);
         if (!node) {
             return sol::lua_nil;
@@ -116,7 +119,7 @@ void LuaScriptEngine::bind_graph_api() {
         // Get properties
         auto props = node->snapshot_properties();
         for (const auto& [key, value] : props) {
-            std::visit([&node_table, &key](const auto& v) {
+            std::visit([&node_table, &key, lua](const auto& v) {
                 using T = std::decay_t<decltype(v)>;
                 if constexpr (std::is_same_v<T, std::monostate>) {
                     node_table[key] = sol::lua_nil;
@@ -139,7 +142,7 @@ void LuaScriptEngine::bind_graph_api() {
     });
 
     // get_edge(id) - Get edge properties as a table
-    strutdb_api.set_function("get_edge", [this](core::EdgeId id) -> sol::table {
+    strutdb_api.set_function("get_edge", [this, lua](core::EdgeId id) -> sol::table {
         auto edge = graph_->get_edge(id);
         if (!edge) {
             return sol::lua_nil;
@@ -147,14 +150,14 @@ void LuaScriptEngine::bind_graph_api() {
 
         sol::table edge_table = lua->create_table();
         edge_table["id"] = edge->id;
-        edge_table["src"] = edge->src_id;
-        edge_table["dst"] = edge->dst_id;
-        edge_table["type"] = edge->type_id;
+        edge_table["src"] = edge->src;
+        edge_table["dst"] = edge->dst;
+        edge_table["type"] = edge->type;
 
         // Get properties
         auto props = edge->snapshot_properties();
         for (const auto& [key, value] : props) {
-            std::visit([&edge_table, &key](const auto& v) {
+            std::visit([&edge_table, &key, lua](const auto& v) {
                 using T = std::decay_t<decltype(v)>;
                 if constexpr (std::is_same_v<T, std::monostate>) {
                     edge_table[key] = sol::lua_nil;
@@ -176,7 +179,7 @@ void LuaScriptEngine::bind_graph_api() {
     });
 
     // outgoing(node_id) - Get outgoing edges as a table of edge IDs
-    strutdb_api.set_function("outgoing", [this](core::NodeId node_id) -> sol::table {
+    strutdb_api.set_function("outgoing", [this, lua](core::NodeId node_id) -> sol::table {
         auto adj_entries = graph_->outgoing(node_id);
         sol::table result = lua->create_table();
         for (size_t i = 0; i < adj_entries.size(); ++i) {
@@ -186,7 +189,7 @@ void LuaScriptEngine::bind_graph_api() {
     });
 
     // incoming(node_id) - Get incoming edges as a table of edge IDs
-    strutdb_api.set_function("incoming", [this](core::NodeId node_id) -> sol::table {
+    strutdb_api.set_function("incoming", [this, lua](core::NodeId node_id) -> sol::table {
         auto adj_entries = graph_->incoming(node_id);
         sol::table result = lua->create_table();
         for (size_t i = 0; i < adj_entries.size(); ++i) {
@@ -257,8 +260,18 @@ LuaResult LuaScriptEngine::eval(std::string_view script) {
             if (script_result.return_count() > 0) {
                 // If the script returns a value, convert it to string
                 auto return_value = script_result[0];
-                if (return_value.valid()) {
-                    result.output = lua->to_string(return_value);
+                
+                // Try to convert to string based on type
+                if (return_value.get_type() == sol::type::string) {
+                    result.output = return_value.as<std::string>();
+                } else if (return_value.get_type() == sol::type::number) {
+                    result.output = std::to_string(return_value.as<double>());
+                } else if (return_value.get_type() == sol::type::boolean) {
+                    result.output = return_value.as<bool>() ? "true" : "false";
+                } else if (return_value.get_type() == sol::type::nil) {
+                    result.output = "nil";
+                } else {
+                    result.output = "[table]";
                 }
             }
         }

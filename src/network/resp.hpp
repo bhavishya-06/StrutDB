@@ -11,17 +11,19 @@ namespace strutdb::network {
 // RESP data types
 using RespInteger = std::int64_t;
 using RespBulkString = std::vector<std::uint8_t>;
+struct RespValue;
 using RespArray = std::vector<RespValue>;
 
 struct RespNull {};
 
-// RESP value variant
-using RespValue = std::variant<
+struct RespValue : std::variant<
     RespNull,
-    std::string,         // Simple string or error
+    std::string,
     RespInteger,
     RespBulkString,
-    RespArray>;
+    RespArray> {
+    using variant::variant;
+};
 
 // Parsed command with arguments
 struct Command {
