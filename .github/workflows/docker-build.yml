@@ -3,8 +3,20 @@ name: Docker Build & CI
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - 'Dockerfile'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - 'Dockerfile'
 
 jobs:
   docker-build:
@@ -19,12 +31,17 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run: |
-          docker build -t strutdb-test .
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: strutdb-test:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Verify container execution
         run: |
-          docker run -d -p 6379:6379 --name strutdb-ci strutdb-test
+          docker run -d -p 6379:6379 --name strutdb-ci strutdb-test:latest
           sleep 2
           docker ps
           docker logs strutdb-ci
