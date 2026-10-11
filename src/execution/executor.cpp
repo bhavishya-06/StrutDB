@@ -10,33 +10,104 @@ Executor::Executor(std::shared_ptr<core::Graph> graph)
     : graph_(std::move(graph)) {}
 
 core::Result<ResultSet> Executor::execute(const parser::Query& query) {
-    ExecutionContext ctx;
+    std::vector<ExecutionContext> contexts;
+    contexts.push_back(ExecutionContext{});
     ResultSet result;
 
     for (const auto& clause : query.clauses) {
         switch (clause.kind) {
             case parser::ClauseKind::Match: {
-                auto match_result = execute_match(clause.match);
-                if (!match_result) {
-                    return core::Result<ResultSet>{{}, match_result.error};
+                std::vector<ExecutionContext> new_contexts;
+                for (const auto& ctx : contexts) {
+                    std::vector<ExecutionContext> path_contexts = {ctx};
+                    for (const auto& path : clause.match.paths) {
+                        std::vector<ExecutionContext> next_path_contexts;
+                        for (const auto& p_ctx : path_contexts) {
+                            auto bfs_res = bfs_match(path, p_ctx);
+                            if (bfs_res) {
+                                next_path_contexts.insert(next_path_contexts.end(),
+                                                          bfs_res.value.begin(),
+                                                          bfs_res.value.end());
+                            }
+                        }
+                        path_contexts = std::move(next_path_contexts);
+                    }
+                    new_contexts.insert(new_contexts.end(), path_contexts.begin(), path_contexts.end());
                 }
-                result = std::move(match_result.value);
+                contexts = std::move(new_contexts);
                 break;
             }
             case parser::ClauseKind::Create: {
-                auto create_result = execute_create(clause.create);
-                if (!create_result) {
-                    return core::Result<ResultSet>{{}, create_result.error};
+                if (contexts.empty()) {
+                    contexts.push_back(ExecutionContext{});
                 }
-                result = std::move(create_result.value);
+                std::vector<ExecutionContext> updated_contexts;
+                for (auto& ctx : contexts) {
+                    for (const auto& path : clause.create.paths) {
+                        for (const auto& node_pattern : path.nodes) {
+                            std::shared_ptr<core::GraphNode> node;
+                            if (!node_pattern.alias.empty() && ctx.node_bindings.contains(node_pattern.alias)) {
+                                node = ctx.node_bindings[node_pattern.alias];
+                            } else {
+                                node = graph_->add_node();
+                                if (!node) {
+                                    return core::Result<ResultSet>{{}, core::CoreError::InvalidArgument};
+                                }
+                                for (const auto& prop : node_pattern.properties) {
+                                    node->set_property(prop.key, prop.value);
+                                }
+                                for (const auto& label : node_pattern.labels) {
+                                    node->add_label(static_cast<core::LabelId>(std::hash<std::string>{}(label)));
+                                }
+                                if (!node_pattern.alias.empty()) {
+                                    ctx.node_bindings[node_pattern.alias] = node;
+                                }
+                            }
+                        }
+
+                        for (size_t i = 0; i < path.rels.size(); ++i) {
+                            const auto& rel = path.rels[i];
+                            const auto& src_node = path.nodes[i];
+                            const auto& dst_node = path.nodes[i + 1];
+
+                            auto src_id = ctx.node_bindings[src_node.alias]->id;
+                            auto dst_id = ctx.node_bindings[dst_node.alias]->id;
+
+                            core::TypeId type_id = 1;
+                            if (!rel.types.empty()) {
+                                type_id = static_cast<core::TypeId>(std::hash<std::string>{}(rel.types[0]));
+                            }
+
+                            auto edge_result = graph_->add_edge(src_id, dst_id, type_id);
+                            if (!edge_result) {
+                                return core::Result<ResultSet>{{}, edge_result.error};
+                            }
+
+                            auto edge = edge_result.value;
+                            for (const auto& prop : rel.properties) {
+                                edge->set_property(prop.key, prop.value);
+                            }
+
+                            if (!rel.alias.empty()) {
+                                ctx.edge_bindings[rel.alias] = edge;
+                            }
+                        }
+                    }
+                    updated_contexts.push_back(ctx);
+                }
+                contexts = std::move(updated_contexts);
                 break;
             }
             case parser::ClauseKind::Return: {
-                auto return_result = execute_return(clause.ret, ctx);
-                if (!return_result) {
-                    return core::Result<ResultSet>{{}, return_result.error};
+                for (const auto& ctx : contexts) {
+                    auto return_result = execute_return(clause.ret, ctx);
+                    if (!return_result) {
+                        return core::Result<ResultSet>{{}, return_result.error};
+                    }
+                    result.rows.insert(result.rows.end(),
+                                       return_result.value.rows.begin(),
+                                       return_result.value.rows.end());
                 }
-                result = std::move(return_result.value);
                 break;
             }
         }
@@ -173,27 +244,43 @@ core::Result<ResultSet> Executor::execute_return(const parser::ReturnClause& ret
             switch (item.kind) {
                 case parser::ReturnItemKind::Identifier: {
                     if (ctx.node_bindings.contains(item.identifier)) {
-                        row.columns[item.alias.empty() ? item.identifier : item.alias] =
-                            static_cast<std::int64_t>(ctx.node_bindings.at(item.identifier)->id);
+                        core::PropertyValue val = static_cast<std::int64_t>(ctx.node_bindings.at(item.identifier)->id);
+                        row.columns[item.alias.empty() ? item.identifier : item.alias] = val;
+                        row.values.push_back(val);
                     } else if (ctx.edge_bindings.contains(item.identifier)) {
-                        row.columns[item.alias.empty() ? item.identifier : item.alias] =
-                            static_cast<std::int64_t>(ctx.edge_bindings.at(item.identifier)->id);
+                        core::PropertyValue val = static_cast<std::int64_t>(ctx.edge_bindings.at(item.identifier)->id);
+                        row.columns[item.alias.empty() ? item.identifier : item.alias] = val;
+                        row.values.push_back(val);
                     } else if (ctx.literal_bindings.contains(item.identifier)) {
-                        row.columns[item.alias.empty() ? item.identifier : item.alias] =
-                            ctx.literal_bindings.at(item.identifier);
+                        core::PropertyValue val = ctx.literal_bindings.at(item.identifier);
+                        row.columns[item.alias.empty() ? item.identifier : item.alias] = val;
+                        row.values.push_back(val);
                     }
                     break;
                 }
                 case parser::ReturnItemKind::Literal: {
                     row.columns[item.alias.empty() ? item.identifier : item.alias] = item.literal;
+                    row.values.push_back(item.literal);
                     break;
                 }
                 case parser::ReturnItemKind::Property: {
-                    // TODO: Implement property access
+                    std::string col = item.alias.empty() ? (item.identifier + "." + item.property) : item.alias;
+                    if (ctx.node_bindings.contains(item.identifier)) {
+                        auto val = ctx.node_bindings.at(item.identifier)->get_property(item.property);
+                        if (val) {
+                            row.columns[col] = *val;
+                            row.values.push_back(*val);
+                        }
+                    } else if (ctx.edge_bindings.contains(item.identifier)) {
+                        auto val = ctx.edge_bindings.at(item.identifier)->get_property(item.property);
+                        if (val) {
+                            row.columns[col] = *val;
+                            row.values.push_back(*val);
+                        }
+                    }
                     break;
                 }
                 case parser::ReturnItemKind::Star: {
-                    // Handled above
                     break;
                 }
             }
@@ -224,13 +311,34 @@ core::Result<std::vector<ExecutionContext>> Executor::bfs_match(
 
             // If this is the first node, start from all nodes in the graph
             if (path_idx == 0) {
-                // Iterate through all nodes (simplified - in production use indexed lookup)
-                // For now, we'll iterate through a range - this is a placeholder
-                // In a real implementation, we'd use node labels/properties for filtering
-                // TODO: Implement efficient node iteration with label/property indexing
-
-                // For demonstration, we'll skip this iteration
-                // In production, we'd iterate through nodes that match the pattern
+                if (!node_pattern.alias.empty() && ctx.node_bindings.contains(node_pattern.alias)) {
+                    auto bound_node = ctx.node_bindings.at(node_pattern.alias);
+                    auto match = matches_node_pattern(node_pattern, bound_node);
+                    if (match && match.value) {
+                        if (path.nodes.size() == 1 && path.rels.empty()) {
+                            results.push_back(ctx);
+                        } else {
+                            next_queue.push(ctx);
+                        }
+                    }
+                } else {
+                    for (core::NodeId id = 1; id < graph_->max_node_id(); ++id) {
+                        auto node = graph_->get_node(id);
+                        if (!node) continue;
+                        auto match = matches_node_pattern(node_pattern, node);
+                        if (match && match.value) {
+                            ExecutionContext new_ctx = ctx;
+                            if (!node_pattern.alias.empty()) {
+                                new_ctx.node_bindings[node_pattern.alias] = node;
+                            }
+                            if (path.nodes.size() == 1 && path.rels.empty()) {
+                                results.push_back(std::move(new_ctx));
+                            } else {
+                                next_queue.push(std::move(new_ctx));
+                            }
+                        }
+                    }
+                }
                 continue;
             }
 
@@ -311,8 +419,10 @@ core::Result<bool> Executor::matches_node_pattern(const parser::NodePattern& pat
     if (!pattern.labels.empty()) {
         auto node_labels = node->snapshot_labels();
         for (const auto& label_str : pattern.labels) {
-            // TODO: Convert label string to LabelId and check
-            // For now, skip label matching
+            core::LabelId target_id = static_cast<core::LabelId>(std::hash<std::string>{}(label_str));
+            if (std::find(node_labels.begin(), node_labels.end(), target_id) == node_labels.end()) {
+                return core::Result<bool>{false};
+            }
         }
     }
 
@@ -321,10 +431,9 @@ core::Result<bool> Executor::matches_node_pattern(const parser::NodePattern& pat
         auto node_props = node->snapshot_properties();
         for (const auto& prop : pattern.properties) {
             auto it = node_props.find(prop.key);
-            if (it == node_props.end()) {
+            if (it == node_props.end() || it->second != prop.value) {
                 return core::Result<bool>{false};
             }
-            // TODO: Implement property value comparison
         }
     }
 
@@ -335,8 +444,12 @@ core::Result<bool> Executor::matches_rel_pattern(const parser::RelPattern& patte
                                                  std::shared_ptr<core::GraphEdge> edge) {
     // Check types
     if (!pattern.types.empty()) {
-        // TODO: Convert type string to TypeId and check
-        // For now, skip type matching
+        for (const auto& type_str : pattern.types) {
+            core::TypeId target_id = static_cast<core::TypeId>(std::hash<std::string>{}(type_str));
+            if (edge->type != target_id) {
+                return core::Result<bool>{false};
+            }
+        }
     }
 
     // Check properties
@@ -344,10 +457,9 @@ core::Result<bool> Executor::matches_rel_pattern(const parser::RelPattern& patte
         auto edge_props = edge->snapshot_properties();
         for (const auto& prop : pattern.properties) {
             auto it = edge_props.find(prop.key);
-            if (it == edge_props.end()) {
+            if (it == edge_props.end() || it->second != prop.value) {
                 return core::Result<bool>{false};
             }
-            // TODO: Implement property value comparison
         }
     }
 

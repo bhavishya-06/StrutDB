@@ -75,6 +75,8 @@ private:
     std::size_t              array_index_ = 0;
     std::vector<RespValue>  array_values_;
     RespValue                current_value_;
+    bool                     in_array_ = false;
+    std::size_t              expected_array_elements_ = 0;
 };
 
 // RESP response formatter

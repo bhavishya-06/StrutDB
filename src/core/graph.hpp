@@ -58,6 +58,7 @@ public:
     Result<std::shared_ptr<GraphEdge>> create_edge(NodeId src, NodeId dst, TypeId type) {
         return add_edge(src, dst, type);
     }
+    [[nodiscard]] NodeId max_node_id() const { return next_node_id_.load(); }
 
 private:
     Result<std::shared_ptr<GraphEdge>> add_edge_unlocked(NodeId src, NodeId dst, TypeId type);

@@ -325,9 +325,30 @@ void Server::handle_error(int fd) {
 void Server::process_command(ClientSession& session, const Command& cmd) {
     auto& output_buffer = session.output_buffer();
 
+    auto to_str = [](const RespValue& v) -> std::string {
+        if (std::holds_alternative<std::string>(v)) {
+            return std::get<std::string>(v);
+        } else if (std::holds_alternative<RespBulkString>(v)) {
+            const auto& b = std::get<RespBulkString>(v);
+            return std::string(b.begin(), b.end());
+        } else if (std::holds_alternative<RespInteger>(v)) {
+            return std::to_string(std::get<RespInteger>(v));
+        }
+        return "";
+    };
+
     if (cmd.name == "PING") {
         // PING command
         auto response = RespFormatter::format_simple_string("PONG");
+        output_buffer.insert(output_buffer.end(), response.begin(), response.end());
+    } else if (cmd.name == "COMMAND") {
+        std::vector<std::uint8_t> response = {'*', '0', '\r', '\n'};
+        output_buffer.insert(output_buffer.end(), response.begin(), response.end());
+    } else if (cmd.name == "CLIENT") {
+        auto response = RespFormatter::format_simple_string("OK");
+        output_buffer.insert(output_buffer.end(), response.begin(), response.end());
+    } else if (cmd.name == "INFO") {
+        auto response = RespFormatter::format_bulk_string("# StrutDB\r\n");
         output_buffer.insert(output_buffer.end(), response.begin(), response.end());
     } else if (cmd.name == "SET") {
         // SET command: SET key value
@@ -337,23 +358,8 @@ void Server::process_command(ClientSession& session, const Command& cmd) {
             return;
         }
 
-        // Extract key and value
-        std::string key;
-        std::string value;
-
-        if (std::holds_alternative<std::string>(cmd.args[0])) {
-            key = std::get<std::string>(cmd.args[0]);
-        } else if (std::holds_alternative<RespBulkString>(cmd.args[0])) {
-            auto& bulk = std::get<RespBulkString>(cmd.args[0]);
-            key = std::string(bulk.begin(), bulk.end());
-        }
-
-        if (std::holds_alternative<std::string>(cmd.args[1])) {
-            value = std::get<std::string>(cmd.args[1]);
-        } else if (std::holds_alternative<RespBulkString>(cmd.args[1])) {
-            auto& bulk = std::get<RespBulkString>(cmd.args[1]);
-            value = std::string(bulk.begin(), bulk.end());
-        }
+        std::string key = to_str(cmd.args[0]);
+        std::string value = to_str(cmd.args[1]);
 
         // Set in graph KV store
         core::PropertyValue prop_value(value);
@@ -370,13 +376,7 @@ void Server::process_command(ClientSession& session, const Command& cmd) {
             return;
         }
 
-        std::string key;
-        if (std::holds_alternative<std::string>(cmd.args[0])) {
-            key = std::get<std::string>(cmd.args[0]);
-        } else if (std::holds_alternative<RespBulkString>(cmd.args[0])) {
-            auto& bulk = std::get<RespBulkString>(cmd.args[0]);
-            key = std::string(bulk.begin(), bulk.end());
-        }
+        std::string key = to_str(cmd.args[0]);
 
         // Get from graph KV store
         auto result = graph_->get(key);
@@ -401,13 +401,7 @@ void Server::process_command(ClientSession& session, const Command& cmd) {
             return;
         }
 
-        std::string key;
-        if (std::holds_alternative<std::string>(cmd.args[0])) {
-            key = std::get<std::string>(cmd.args[0]);
-        } else if (std::holds_alternative<RespBulkString>(cmd.args[0])) {
-            auto& bulk = std::get<RespBulkString>(cmd.args[0]);
-            key = std::string(bulk.begin(), bulk.end());
-        }
+        std::string key = to_str(cmd.args[0]);
 
         // Delete from graph KV store
         bool deleted = graph_->del(key);
@@ -415,26 +409,103 @@ void Server::process_command(ClientSession& session, const Command& cmd) {
         auto response = RespFormatter::format_integer(deleted ? 1 : 0);
         output_buffer.insert(output_buffer.end(), response.begin(), response.end());
 
-    } else if (cmd.name == "GRAPH.QUERY") {
-        // GRAPH.QUERY command: GRAPH.QUERY "cypher_query"
-        if (cmd.args.size() < 1) {
-            auto error = RespFormatter::format_error("ERR wrong number of arguments for 'GRAPH.QUERY'");
+    } else if (cmd.name == "GRAPH.QUERY" ||
+               cmd.name == "CREATE" || cmd.name == "MATCH" ||
+               cmd.name.starts_with("CREATE ") || cmd.name.starts_with("MATCH ") ||
+               cmd.name.starts_with("create ") || cmd.name.starts_with("match ")) {
+
+        std::string cypher;
+        if (cmd.name == "GRAPH.QUERY") {
+            if (cmd.args.empty()) {
+                auto error = RespFormatter::format_error("ERR wrong number of arguments for 'GRAPH.QUERY'");
+                output_buffer.insert(output_buffer.end(), error.begin(), error.end());
+                return;
+            }
+            if (cmd.args.size() == 1) {
+                cypher = to_str(cmd.args[0]);
+            } else {
+                std::string first = to_str(cmd.args[0]);
+                std::string first_upper = first;
+                std::transform(first_upper.begin(), first_upper.end(), first_upper.begin(), ::toupper);
+                if (first_upper.starts_with("MATCH") || first_upper.starts_with("CREATE")) {
+                    cypher = first;
+                    for (size_t i = 1; i < cmd.args.size(); ++i) {
+                        cypher += " " + to_str(cmd.args[i]);
+                    }
+                } else {
+                    cypher = to_str(cmd.args[1]);
+                    for (size_t i = 2; i < cmd.args.size(); ++i) {
+                        cypher += " " + to_str(cmd.args[i]);
+                    }
+                }
+            }
+        } else {
+            cypher = cmd.name;
+            for (const auto& arg : cmd.args) {
+                cypher += " " + to_str(arg);
+            }
+        }
+
+        parser::CypherParser cypher_parser;
+        auto parse_res = cypher_parser.parse(cypher);
+        if (!parse_res.ok()) {
+            auto error = RespFormatter::format_error("ERR Cypher parse error: " + cypher);
             output_buffer.insert(output_buffer.end(), error.begin(), error.end());
             return;
         }
 
-        std::string cypher;
-        if (std::holds_alternative<std::string>(cmd.args[0])) {
-            cypher = std::get<std::string>(cmd.args[0]);
-        } else if (std::holds_alternative<RespBulkString>(cmd.args[0])) {
-            auto& bulk = std::get<RespBulkString>(cmd.args[0]);
-            cypher = std::string(bulk.begin(), bulk.end());
+        auto exec_res = executor_->execute(parse_res.value);
+        if (!exec_res.ok()) {
+            auto error = RespFormatter::format_error("ERR Cypher execution error");
+            output_buffer.insert(output_buffer.end(), error.begin(), error.end());
+            return;
         }
 
-        // Parse and execute Cypher query
-        // TODO: Implement Cypher parser integration
-        auto error = RespFormatter::format_error("ERR GRAPH.QUERY not yet implemented");
-        output_buffer.insert(output_buffer.end(), error.begin(), error.end());
+        const auto& rows = exec_res.value.rows;
+        if (rows.empty()) {
+            auto response = RespFormatter::format_simple_string("OK");
+            output_buffer.insert(output_buffer.end(), response.begin(), response.end());
+        } else {
+            std::vector<std::vector<std::uint8_t>> row_arrays;
+            row_arrays.reserve(rows.size());
+            for (const auto& row : rows) {
+                std::vector<std::vector<std::uint8_t>> cell_bytes;
+                if (!row.values.empty()) {
+                    cell_bytes.reserve(row.values.size());
+                    for (const auto& val : row.values) {
+                        if (std::holds_alternative<std::string>(val)) {
+                            cell_bytes.push_back(RespFormatter::format_bulk_string(std::get<std::string>(val)));
+                        } else if (std::holds_alternative<std::int64_t>(val)) {
+                            cell_bytes.push_back(RespFormatter::format_integer(std::get<std::int64_t>(val)));
+                        } else if (std::holds_alternative<bool>(val)) {
+                            cell_bytes.push_back(RespFormatter::format_integer(std::get<bool>(val) ? 1 : 0));
+                        } else if (std::holds_alternative<double>(val)) {
+                            cell_bytes.push_back(RespFormatter::format_bulk_string(std::to_string(std::get<double>(val))));
+                        } else {
+                            cell_bytes.push_back(RespFormatter::format_null_bulk_string());
+                        }
+                    }
+                } else {
+                    cell_bytes.reserve(row.columns.size());
+                    for (const auto& [col, val] : row.columns) {
+                        if (std::holds_alternative<std::string>(val)) {
+                            cell_bytes.push_back(RespFormatter::format_bulk_string(std::get<std::string>(val)));
+                        } else if (std::holds_alternative<std::int64_t>(val)) {
+                            cell_bytes.push_back(RespFormatter::format_integer(std::get<std::int64_t>(val)));
+                        } else if (std::holds_alternative<bool>(val)) {
+                            cell_bytes.push_back(RespFormatter::format_integer(std::get<bool>(val) ? 1 : 0));
+                        } else if (std::holds_alternative<double>(val)) {
+                            cell_bytes.push_back(RespFormatter::format_bulk_string(std::to_string(std::get<double>(val))));
+                        } else {
+                            cell_bytes.push_back(RespFormatter::format_null_bulk_string());
+                        }
+                    }
+                }
+                row_arrays.push_back(RespFormatter::format_array(cell_bytes.data(), cell_bytes.size()));
+            }
+            auto response = RespFormatter::format_array(row_arrays.data(), row_arrays.size());
+            output_buffer.insert(output_buffer.end(), response.begin(), response.end());
+        }
 
     } else if (cmd.name == "EVAL") {
         // EVAL command: EVAL "lua_script"
@@ -444,13 +515,7 @@ void Server::process_command(ClientSession& session, const Command& cmd) {
             return;
         }
 
-        std::string script;
-        if (std::holds_alternative<std::string>(cmd.args[0])) {
-            script = std::get<std::string>(cmd.args[0]);
-        } else if (std::holds_alternative<RespBulkString>(cmd.args[0])) {
-            auto& bulk = std::get<RespBulkString>(cmd.args[0]);
-            script = std::string(bulk.begin(), bulk.end());
-        }
+        std::string script = to_str(cmd.args[0]);
 
         // Execute Lua script
         auto result = lua_engine_->eval(script);

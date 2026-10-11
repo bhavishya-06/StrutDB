@@ -46,13 +46,27 @@ bool RespParser::parse_byte(std::uint8_t byte) {
         case ParseState::SimpleString:
             if (parse_simple_string(byte)) {
                 current_value_ = current_string_;
-                // If we're parsing an array element, add it
-                if (!array_values_.empty()) {
-                    array_values_.push_back(current_value_);
+                if (in_array_) {
+                    array_values_.push_back(std::move(current_value_));
                     current_value_ = RespNull{};
-                    state_ = ParseState::ArrayElement;
+                    if (array_values_.size() >= expected_array_elements_) {
+                        if (!array_values_.empty()) {
+                            if (std::holds_alternative<std::string>(array_values_[0])) {
+                                command_.name = std::get<std::string>(array_values_[0]);
+                            } else if (std::holds_alternative<RespBulkString>(array_values_[0])) {
+                                auto& bulk = std::get<RespBulkString>(array_values_[0]);
+                                command_.name = std::string(bulk.begin(), bulk.end());
+                            }
+                            for (std::size_t i = 1; i < array_values_.size(); ++i) {
+                                command_.args.push_back(std::move(array_values_[i]));
+                            }
+                        }
+                        state_ = ParseState::Complete;
+                        return true;
+                    } else {
+                        state_ = ParseState::Start;
+                    }
                 } else {
-                    // Single value command
                     command_.name = current_string_;
                     state_ = ParseState::Complete;
                     return true;
@@ -63,10 +77,15 @@ bool RespParser::parse_byte(std::uint8_t byte) {
         case ParseState::Error:
             if (parse_error(byte)) {
                 current_value_ = current_string_;
-                if (!array_values_.empty()) {
-                    array_values_.push_back(current_value_);
+                if (in_array_) {
+                    array_values_.push_back(std::move(current_value_));
                     current_value_ = RespNull{};
-                    state_ = ParseState::ArrayElement;
+                    if (array_values_.size() >= expected_array_elements_) {
+                        state_ = ParseState::Complete;
+                        return true;
+                    } else {
+                        state_ = ParseState::Start;
+                    }
                 } else {
                     command_.name = current_string_;
                     state_ = ParseState::Complete;
@@ -78,10 +97,15 @@ bool RespParser::parse_byte(std::uint8_t byte) {
         case ParseState::Integer:
             if (parse_integer(byte)) {
                 current_value_ = current_integer_;
-                if (!array_values_.empty()) {
-                    array_values_.push_back(current_value_);
+                if (in_array_) {
+                    array_values_.push_back(std::move(current_value_));
                     current_value_ = RespNull{};
-                    state_ = ParseState::ArrayElement;
+                    if (array_values_.size() >= expected_array_elements_) {
+                        state_ = ParseState::Complete;
+                        return true;
+                    } else {
+                        state_ = ParseState::Start;
+                    }
                 } else {
                     command_.name = std::to_string(current_integer_);
                     state_ = ParseState::Complete;
@@ -93,18 +117,21 @@ bool RespParser::parse_byte(std::uint8_t byte) {
         case ParseState::BulkStringLength:
             if (parse_bulk_string_length(byte)) {
                 if (current_integer_ == -1) {
-                    // Null bulk string
                     current_value_ = RespNull{};
-                    if (!array_values_.empty()) {
-                        array_values_.push_back(current_value_);
+                    if (in_array_) {
+                        array_values_.push_back(std::move(current_value_));
                         current_value_ = RespNull{};
-                        state_ = ParseState::ArrayElement;
+                        if (array_values_.size() >= expected_array_elements_) {
+                            state_ = ParseState::Complete;
+                            return true;
+                        } else {
+                            state_ = ParseState::Start;
+                        }
                     } else {
                         state_ = ParseState::Complete;
                         return true;
                     }
                 } else if (current_integer_ < 0) {
-                    // Invalid length
                     return false;
                 } else {
                     remaining_bytes_ = static_cast<std::size_t>(current_integer_);
@@ -124,24 +151,36 @@ bool RespParser::parse_byte(std::uint8_t byte) {
                 std::get<RespBulkString>(current_value_).push_back(byte);
                 remaining_bytes_--;
             } else {
-                // Expecting \r\n after bulk string data
                 if (byte == '\r') {
                     // Wait for \n
                 } else if (byte == '\n') {
-                    // Bulk string complete
-                    if (!array_values_.empty()) {
-                        array_values_.push_back(current_value_);
+                    if (in_array_) {
+                        array_values_.push_back(std::move(current_value_));
                         current_value_ = RespNull{};
-                        state_ = ParseState::ArrayElement;
+                        if (array_values_.size() >= expected_array_elements_) {
+                            if (!array_values_.empty()) {
+                                if (std::holds_alternative<RespBulkString>(array_values_[0])) {
+                                    auto& bulk = std::get<RespBulkString>(array_values_[0]);
+                                    command_.name = std::string(bulk.begin(), bulk.end());
+                                } else if (std::holds_alternative<std::string>(array_values_[0])) {
+                                    command_.name = std::get<std::string>(array_values_[0]);
+                                }
+                                for (std::size_t i = 1; i < array_values_.size(); ++i) {
+                                    command_.args.push_back(std::move(array_values_[i]));
+                                }
+                            }
+                            state_ = ParseState::Complete;
+                            return true;
+                        } else {
+                            state_ = ParseState::Start;
+                        }
                     } else {
-                        // Single bulk string command
                         auto& bulk = std::get<RespBulkString>(current_value_);
                         command_.name = std::string(bulk.begin(), bulk.end());
                         state_ = ParseState::Complete;
                         return true;
                     }
                 } else {
-                    // Invalid RESP
                     return false;
                 }
             }
@@ -149,70 +188,26 @@ bool RespParser::parse_byte(std::uint8_t byte) {
 
         case ParseState::ArrayLength:
             if (parse_integer(byte)) {
-                if (current_integer_ < 0) {
-                    // Null array
+                if (current_integer_ <= 0) {
                     current_value_ = RespNull{};
                     state_ = ParseState::Complete;
                     return true;
                 } else if (current_integer_ > 1024 * 1024) {  // 1MB limit
                     return false;
                 } else {
-                    array_index_ = 0;
+                    expected_array_elements_ = static_cast<std::size_t>(current_integer_);
+                    in_array_ = true;
                     array_values_.clear();
-                    array_values_.reserve(static_cast<std::size_t>(current_integer_));
-                    if (current_integer_ == 0) {
-                        // Empty array
-                        current_value_ = RespArray{};
-                        state_ = ParseState::Complete;
-                        return true;
-                    }
-                    state_ = ParseState::ArrayElement;
+                    array_values_.reserve(expected_array_elements_);
+                    state_ = ParseState::Start;
                 }
             }
             break;
 
         case ParseState::ArrayElement:
-            if (array_index_ >= array_values_.size()) {
-                // All elements parsed
-                current_value_ = std::move(array_values_);
-                array_values_.clear();
-
-                // If this is the top-level array, convert to command
-                if (command_.name.empty() && !std::holds_alternative<RespArray>(current_value_)) {
-                    // Actually, we should have parsed the first element as command name
-                    // Array format: *2\r\n$3\r\nGET\r\n$3\r\nkey\r\n
-                    // First element is command name, rest are args
-                    auto& arr = std::get<RespArray>(current_value_);
-                    if (!arr.empty()) {
-                        if (std::holds_alternative<std::string>(arr[0])) {
-                            command_.name = std::get<std::string>(arr[0]);
-                            for (std::size_t i = 1; i < arr.size(); ++i) {
-                                command_.args.push_back(arr[i]);
-                            }
-                        } else if (std::holds_alternative<RespBulkString>(arr[0])) {
-                            auto& bulk = std::get<RespBulkString>(arr[0]);
-                            command_.name = std::string(bulk.begin(), bulk.end());
-                            for (std::size_t i = 1; i < arr.size(); ++i) {
-                                command_.args.push_back(arr[i]);
-                            }
-                        }
-                    }
-                    state_ = ParseState::Complete;
-                    return true;
-                } else {
-                    state_ = ParseState::Complete;
-                    return true;
-                }
-            } else {
-                // Parse next element (reset to start)
-                state_ = ParseState::Start;
-                // Re-parse this byte as the start of the next element
-                return parse_byte(byte);
-            }
-            break;
+            return false;
 
         case ParseState::Complete:
-            // Should not happen
             return true;
     }
 
@@ -279,6 +274,8 @@ void RespParser::reset() {
     array_index_ = 0;
     array_values_.clear();
     current_value_ = RespNull{};
+    in_array_ = false;
+    expected_array_elements_ = 0;
 }
 
 // RESP Formatter implementation

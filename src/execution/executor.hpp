@@ -17,6 +17,7 @@ namespace strutdb::execution {
 // Result row: maps variable names to their values (nodes, edges, or literals)
 struct Row {
     std::unordered_map<std::string, core::PropertyValue> columns;
+    std::vector<core::PropertyValue>                     values;
 };
 
 // Query result set
