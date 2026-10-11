@@ -30,12 +30,26 @@ class StrutDBClient:
         res = self.client.ping()
         return bool(res)
 
-    def execute(self, cypher_query: str) -> Any:
-        """Execute a raw Cypher query against StrutDB and return the result."""
-        cypher_query = cypher_query.strip()
-        if not cypher_query:
+    def execute(self, query_or_cmd: str, *args: Any) -> Any:
+        """Execute a raw Cypher query or command against StrutDB and return the result."""
+        query_or_cmd = query_or_cmd.strip()
+        if not query_or_cmd:
             raise ValueError("Query cannot be empty")
-        return self.client.execute_command(cypher_query)
+        if args:
+            return self.client.execute_command(query_or_cmd, *args)
+        if query_or_cmd.upper().startswith("EVAL "):
+            script = query_or_cmd[5:].strip()
+            if (script.startswith('"') and script.endswith('"')) or (script.startswith("'") and script.endswith("'")):
+                script = script[1:-1]
+            return self.client.execute_command("EVAL", script)
+        return self.client.execute_command(query_or_cmd)
+
+    def eval(self, script: str) -> Any:
+        """Execute a custom Lua script via the EVAL command."""
+        script = script.strip()
+        if not script:
+            raise ValueError("Script cannot be empty")
+        return self.client.execute_command("EVAL", script)
 
     def close(self) -> None:
         """Close the underlying client connection."""

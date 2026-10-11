@@ -1,0 +1,40 @@
+site_name: StrutDB
+site_description: High-Performance Native C++20 Graph Database
+site_author: StrutDB Team
+repo_url: https://github.com/bhavishya-06/StrutDB
+repo_name: bhavishya-06/StrutDB
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: indigo
+    accent: cyan
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+
+nav:
+  - Overview: index.md
+  - Architecture: architecture.md
+  - Querying: querying.md
+  - Lua Scripting: scripting.md

@@ -203,29 +203,28 @@ void LuaScriptEngine::bind_graph_api() {
 }
 
 bool LuaScriptEngine::validate_script(std::string_view script) const {
-    // Check for dangerous patterns in the script
-    static const std::vector<std::regex> dangerous_patterns = {
-        std::regex(R"(\brequire\s*\()"),            // require()
-        std::regex(R"(\bdofile\s*\()"),             // dofile()
-        std::regex(R"(\bloadfile\s*\()"),           // loadfile()
-        std::regex(R"(\bload\s*\()"),               // load()
-        std::regex(R"(\bos\s*\.execute\s*\()"),     // os.execute()
-        std::regex(R"(\bos\s*\.remove\s*\()"),      // os.remove()
-        std::regex(R"(\bos\s*\.rename\s*\()"),      // os.rename()
-        std::regex(R"(\bio\s*\.open\s*\()"),        // io.open()
-        std::regex(R"(\bio\s*\.popen\s*\()"),       // io.popen()
-        std::regex(R"(\bpackage\s*\.")},           // package.
-        std::regex(R"(\bdebug\s*\.")},              // debug.
-        std::regex(R"(\b_getmetatable\s*\()"),      // getmetatable (could access registry)
-        std::regex(R"(\bsetmetatable\s*\()"),       // setmetatable
-        std::regex(R"(\brawget\s*\()"),             // rawget
-        std::regex(R"(\brawset\s*\()"),             // rawset
-        std::regex(R"(\bcollectgarbage\s*\()"),     // collectgarbage (memory exhaustion)
+    // Check for dangerous patterns in the script (defense-in-depth)
+    static const std::vector<std::string_view> dangerous_patterns = {
+        "require",
+        "dofile",
+        "loadfile",
+        "load(",
+        "os.execute",
+        "os.remove",
+        "os.rename",
+        "io.open",
+        "io.popen",
+        "package.",
+        "debug.",
+        "getmetatable",
+        "setmetatable",
+        "rawget",
+        "rawset",
+        "collectgarbage",
     };
 
-    std::string script_str(script);
     for (const auto& pattern : dangerous_patterns) {
-        if (std::regex_search(script_str, pattern)) {
+        if (script.find(pattern) != std::string_view::npos) {
             return false;
         }
     }
